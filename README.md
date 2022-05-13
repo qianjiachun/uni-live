@@ -1,5 +1,8 @@
 ## DouyuEx联播
 
+### 网站
+1. [http://live.douyuex.com](http://live.douyuex.com)
+
 ### 功能
 1. 支持无限个平台直播画面/声音同时播放
 2. 支持无限个斗鱼直播间弹幕同时飘屏
