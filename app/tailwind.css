@@ -478,6 +478,33 @@ html, body {
   height: 100%;
 }
 
+.popup-top {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  height: 32px;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+  text-align: right;
+  border-bottom: 1px solid rgb(227, 227, 227);
+}
+
+.popup-top > div {
+  width: 24px;
+  height: 24px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.popup-top .github {
+  position: absolute;
+  left: 0;
+}
+
 .visible {
   visibility: visible;
 }
@@ -490,16 +517,20 @@ html, body {
   position: absolute;
 }
 
-.right-8 {
-  right: 2rem;
+.right-4 {
+  right: 1rem;
 }
 
-.top-8 {
-  top: 2rem;
+.bottom-1\/2 {
+  bottom: 50%;
 }
 
 .z-50 {
   z-index: 50;
+}
+
+.z-40 {
+  z-index: 40;
 }
 
 .ml-2 {
@@ -565,8 +596,8 @@ html, body {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
-.opacity-40 {
-  opacity: 0.4;
+.opacity-50 {
+  opacity: 0.5;
 }
 
 .filter {

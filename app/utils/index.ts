@@ -16,7 +16,7 @@ export function eval1(str: string, iid: string) {
 }
 
 // 取随机整数   
-export function getRandomInt(min: number, max: number) {
+export function getRandom(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
@@ -77,4 +77,8 @@ export function deepCopyArray(arr: any[]) {
         ret.push(arr[i]);
     }
     return ret;
+}
+
+export function sleep(time: number) {
+	return new Promise((resolve) => setTimeout(resolve, time));
 }

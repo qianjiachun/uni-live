@@ -1,4 +1,4 @@
-import { getRandomInt } from "~/utils";
+import { getRandom } from "~/utils";
 export const QN_BILIBILI: any = {
 	"原画": "10000",
 	"蓝光": "400",
@@ -25,7 +25,7 @@ export function getRealLive_Bilibili(
       .then((ret) => {
         let rurl = "";
         if (ret.data.durl != null && ret.data.durl.length > 0) {
-          rurl = ret.data.durl[getRandomInt(0, ret.data.durl.length - 1)].url;
+          rurl = ret.data.durl[getRandom(0, ret.data.durl.length - 1)].url;
         } else {
           rurl = "";
         }

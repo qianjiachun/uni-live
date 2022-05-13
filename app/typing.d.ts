@@ -33,4 +33,11 @@ interface IVideo {
 interface IVideoOrder {
     id: string;
     url: string;
+    qnName: string;
+}
+
+interface IDanmaku {
+    id: string;
+    url: string;
+    ws: any;
 }

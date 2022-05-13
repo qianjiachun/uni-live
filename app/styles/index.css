@@ -9,4 +9,28 @@
     html, body {
         @apply h-full;
     }
+
+    .popup-top {
+        user-select: none;
+        height: 32px;
+        display: flex;
+        flex-direction: row-reverse;
+        align-items: center;
+        padding: 0 10px;
+        box-sizing: border-box;
+        text-align: right;
+        border-bottom: 1px solid rgb(227, 227, 227);
+    }
+
+    .popup-top > div {
+        width: 24px;
+        height: 24px;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+    .popup-top .github {
+        position: absolute;
+        left: 0;
+    }
+    
 }

@@ -30,8 +30,8 @@ const VideoItem: FC<IProps> = (props) => {
         flvPlayer.load();
         flvPlayer.play();
         return () => {
-            if (flvPlayer) {
-                flvPlayer.unload();
+            flvPlayer.unload();
+            if (flvPlayer.destory) {
                 flvPlayer.destory();
             }
         }
@@ -43,7 +43,7 @@ const VideoItem: FC<IProps> = (props) => {
             zIndex: props.order,
             ...props.style
         }}>
-            <video ref={videoRef} className="w-full h-full" src={props.src} controls={true} ></video>
+            <video muted autoPlay={true} ref={videoRef} className="w-full h-full" src={props.src} controls={true} ></video>
         </div>
     )
 }

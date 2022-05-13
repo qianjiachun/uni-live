@@ -6,13 +6,15 @@ export const action: ActionFunction = async ({request}) => {
     let formData = await request.formData();
     let rid = formData.get("rid") as string;
     let url = formData.get("url") as string;
+    let qn = formData.get("qn") as string;
 
     let stream = await getRealLive_Huya(rid);
     ret = {
         type: "stream",
         url,
         rid,
-        stream
+        stream,
+        qnName: qn
     }
     return ret;
 }

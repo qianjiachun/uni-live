@@ -14,7 +14,8 @@ export const action: ActionFunction = async ({request}) => {
         type: "stream",
         url,
         rid,
-        stream
+        stream,
+        qnName: formData.get("qn") as string
     }
     return ret;
 }
