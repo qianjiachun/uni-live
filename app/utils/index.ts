@@ -82,3 +82,13 @@ export function deepCopyArray(arr: any[]) {
 export function sleep(time: number) {
 	return new Promise((resolve) => setTimeout(resolve, time));
 }
+
+
+export function injectStyle(styleName: any, styleText: any) {
+    if (document.getElementById(styleName) == null) {
+        let styleElement = document.createElement("style");
+        styleElement.id = styleName;
+        styleElement.innerHTML = styleText;
+        document.body.append(styleElement);
+    }
+}

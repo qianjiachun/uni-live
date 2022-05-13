@@ -1,53 +1,14 @@
-# Welcome to Remix!
+## DouyuEx联播
 
-- [Remix Docs](https://remix.run/docs)
+### 功能
+1. 支持无限个平台直播画面/声音同时播放
+2. 支持无限个斗鱼直播间弹幕同时飘屏
+3. 支持斗鱼/虎牙/b站直播流解析，其他任意平台需直接输入直播流
+4. 观看模式可切换成并列（对比）和重叠（声音+画面），可自由调整显示顺序
+5. 支持分享按钮，可将自己配置好的直播间分享出去，其他人点开链接即可观看
+6. 设置支持本地保存，下次打开不再需要输入直播间
 
-## Development
 
-From your terminal:
-
-```sh
-npm run dev
-```
-
-This starts your app in development mode, rebuilding assets on file changes.
-
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `remix build`
-
-- `build/`
-- `public/build/`
-
-### Using a Template
-
-When you ran `npx create-remix@latest` there were a few choices for hosting. You can run that again to create a new project, then copy over your `app/` folder to the new project that's pre-configured for your target server.
-
-```sh
-cd ..
-# create a new project, and pick a pre-configured host
-npx create-remix@latest
-cd my-new-remix-app
-# remove the new project's app (not the old one!)
-rm -rf app
-# copy your app over
-cp -R ../my-old-remix-app/app app
-```
+### 声明
+1. 请勿用于商业用途，网站仅为方便大众观看
+2. 作者：小淳  邮箱：189964430@qq.com
