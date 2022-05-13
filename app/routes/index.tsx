@@ -320,9 +320,9 @@ const Index = () => {
 
 	
 	return (
-		<div id="danmaku" className="w-full h-full absolute">
+		<div className="w-full h-full">
 			{/* 视频区 */}
-			<div className="videolist flex w-full h-full flex-wrap bg-black absolute">
+			<div id="danmaku" className="videolist flex w-full h-full flex-wrap bg-black absolute">
 				{videoList.map(item => {
 					return (
 						<VideoItem style={{
