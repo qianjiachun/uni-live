@@ -476,7 +476,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 html, body {
   height: 100%;
-  overflow: hidden;
 }
 
 .visible {
@@ -487,12 +486,28 @@ html, body {
   position: fixed;
 }
 
+.absolute {
+  position: absolute;
+}
+
 .right-8 {
   right: 2rem;
 }
 
-.bottom-8 {
-  bottom: 2rem;
+.top-8 {
+  top: 2rem;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.block {
+  display: block;
 }
 
 .flex {
@@ -515,8 +530,39 @@ html, body {
   width: 2.5rem;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 .flex-wrap {
   flex-wrap: wrap;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.bg-black {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity));
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-white {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
 .opacity-40 {

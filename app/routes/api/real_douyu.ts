@@ -9,11 +9,13 @@ export const action: ActionFunction = async ({request}) => {
     let param = formData.get("param");
     let qn = formData.get("qn") as string;
     let rid = formData.get("rid");
-    let postData = `${param}&ver=219032101&rid=${rid}&rate=${qn}`;
+    let url = formData.get("url") as string;
+    let postData = `${param}&ver=219032101&rid=${rid}`;
     let stream = await getRealLive_Douyu(postData, qn);
     ret = {
-        type: "stream_douyu",
-        src: `https://www.douyu.com/${rid}`,
+        type: "stream",
+        url,
+        rid,
         stream
     }
     return ret;

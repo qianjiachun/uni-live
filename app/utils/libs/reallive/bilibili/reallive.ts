@@ -1,19 +1,19 @@
 import { getRandomInt } from "~/utils";
+export const QN_BILIBILI: any = {
+	"原画": "10000",
+	"蓝光": "400",
+	"超清": "250",
+	"高清": "150",
+	"流畅": "80"
+};
 
 export function getRealLive_Bilibili(
   room_id: string,
   qn: string
 ): Promise<string> {
-  const QN: any = {
-    "1": "80",
-    "2": "150",
-    "3": "250",
-    "4": "400",
-    "5": "10000",
-  };
   return new Promise((resolve, reject) => {
     fetch(
-      `https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${room_id}&qn=${QN[qn]}&platform=web`,
+      `https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${room_id}&qn=${qn}&platform=web`,
       {
         method: "GET",
         credentials: "include",

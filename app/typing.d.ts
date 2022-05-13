@@ -1,5 +1,6 @@
 declare interface Window {
-    ub98484234: any
+    ub98484234: any,
+    flvjs: any,
 }
 
 declare class STT {
@@ -18,8 +19,18 @@ declare class Ex_WebSocket_UnLogin {
 }
 
 interface IVideo {
+    id: string;
+    // order
+    order: number;
     // 视频链接
-    src: string;
+    url: string;
+    // rid
+    rid: string;
     // 视频直播流地址
     stream: string;
+}
+
+interface IVideoOrder {
+    id: string;
+    url: string;
 }
