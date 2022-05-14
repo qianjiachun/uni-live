@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 // const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 interface IProps {
+    id: string;
     style?: React.CSSProperties;
     // 视频地址
     url: string;
@@ -38,13 +39,15 @@ const VideoItem: FC<IProps> = (props) => {
     //         }
     //     }
     // }, [props.src])
-    const videoRef = useRef<HTMLDivElement>(null);
+    // const videoRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        window.renderReactPlayer(videoRef.current, {url: props.src, playing: true, muted: true, width: "100%", height: "100%", controls: true});
+        let wrap = document.getElementById(props.id);
+        window.renderReactPlayer(wrap, {url: props.src, playing: true, muted: true, width: "100%", height: "100%", controls: true});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.src])
 
     return (
-        <div style={{
+        <div id={props.id} style={{
             order: props.order,
             zIndex: props.order,
             ...props.style
@@ -57,7 +60,7 @@ const VideoItem: FC<IProps> = (props) => {
                 playing={true}
                 muted
             ></ReactPlayer> */}
-            <div ref={videoRef} className="w-full h-full"></div>
+            {/* <div ref={videoRef} className="w-full h-full"></div> */}
             {/* <video muted autoPlay={true} ref={videoRef} className="w-full h-full" src={props.src} controls={true} ></video> */}
         </div>
     )

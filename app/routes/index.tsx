@@ -321,6 +321,10 @@ const Index = () => {
 		}).catch(() => {});
 	}
 
+	const getLastVideoId = () => {
+		return videoOrderListRef.current[videoOrderListRef.current.length - 1].id;
+	}
+
 	
 	return (
 		<div className="w-full h-full bg-black">
@@ -333,8 +337,9 @@ const Index = () => {
 							flex: `${lineCount ? "0 0 " + String(100/lineCount) + "%" : ""}`,
 							position: `${showType === "overlap" ? "absolute" : "inherit"}`,
 							height: `${showType === "overlap" ? "100%" : "auto"}`,
-							width: `${showType === "overlap" ? "100%" : "auto"}`
-						}} key={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
+							width: `${showType === "overlap" ? "100%" : "auto"}`,
+							display: `${showType === "overlap" ? item.id === getLastVideoId() ? "block" : "none" : "block"}`,
+						}} key={item.id} id={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
 					)
 				})}
 			</div>
