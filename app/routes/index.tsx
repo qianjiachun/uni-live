@@ -133,7 +133,8 @@ const Index = () => {
 	useEffect(() => {
 		injectStyle("Global", `
 		.bullet-item {z-index: 40 !important;}
-		#danmaku{overflow-y: auto !important;overflow-x: hidden !important;}`);
+		.bullet-item-text {font-size:1.5rem !important; font-weight: bold !important;}
+		#danmaku{position:absolute !important}`);
 		initDanmaku();
 		if (shareVideoList) {
 			loadShareVideoList();
@@ -322,9 +323,10 @@ const Index = () => {
 
 	
 	return (
-		<div className="w-full h-full">
+		<div className="w-full h-full bg-black">
+			<div id="danmaku" className="w-full h-full absolute"></div>
 			{/* 视频区 */}
-			<div id="danmaku" className="videolist flex w-full h-full flex-wrap bg-black absolute">
+			<div className="videolist flex w-full h-full flex-wrap bg-black">
 				{videoList.map(item => {
 					return (
 						<VideoItem style={{
@@ -348,6 +350,17 @@ const Index = () => {
 				</div>
 				<Tabs>
 					<Tabs.TabPane title="视频">
+					<Field label="显示">
+							<Radio.Group value={showType} direction="horizontal" onChange={(v) => setShowType(v as string)}>
+								<Radio name="overlap">重叠</Radio>
+								<Radio name="line">并列</Radio>
+							</Radio.Group>
+						</Field>
+						<Field disabled={showType==="overlap"} type="digit" label="一行几个" value={String(lineCount)} onChange={(v) => setLineCount(Number(v))}></Field>
+						<Field value={videoUrl} center clearable label="添加视频" placeholder="斗鱼/B站/虎牙直播间或任意平台直播流地址" button={
+							<Button loading={isAddVideoLoading} size="small" type="primary" onClick={() => {addVideo(videoUrl, qnName)}}>添加</Button>
+						} onChange={setVideoUrl}>
+						</Field>
 						<Field label="画质">
 							<Radio.Group value={qnName} direction="horizontal" onChange={(v) => {setQnName(v as string)}}>
 								<Radio name="原画">原画</Radio>
@@ -357,14 +370,10 @@ const Index = () => {
 								<Radio name="流畅">流畅</Radio>
 							</Radio.Group>
 						</Field>
-						<Field value={videoUrl} center clearable label="添加视频" placeholder="斗鱼/B站/虎牙直播间或任意平台直播流地址" button={
-							<Button loading={isAddVideoLoading} size="small" type="primary" onClick={() => {addVideo(videoUrl, qnName)}}>添加</Button>
-						} onChange={setVideoUrl}>
-						</Field>
 						<div>
 							{videoOrderList.map((item, index) => {
 								return (
-									<Cell key={item.id} title={item.url}>
+									<Cell key={item.id} title={`${item.url} ${item.qnName}`}>
 										<div className="flex justify-end h-full items-center">
 											<ArrowUp style={{display: `${index === 0 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={() => {setVideoOrderList(list => arrayMoveUp(deepCopyArray(list), index))}} />
 											<ArrowDown style={{display: `${index === videoOrderList.length - 1 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={() => {setVideoOrderList(list => arrayMoveDown(deepCopyArray(list), index))}} />
@@ -420,15 +429,6 @@ const Index = () => {
 								)
 							})}
 						</div>
-					</Tabs.TabPane>
-					<Tabs.TabPane title="通用">
-						<Field label="显示">
-							<Radio.Group value={showType} direction="horizontal" onChange={(v) => setShowType(v as string)}>
-								<Radio name="overlap">重叠</Radio>
-								<Radio name="line">并列</Radio>
-							</Radio.Group>
-						</Field>
-						<Field disabled={showType==="overlap"} type="digit" label="一行几个" value={String(lineCount)} onChange={(v) => setLineCount(Number(v))}></Field>
 					</Tabs.TabPane>
 				</Tabs>
 			</Popup>

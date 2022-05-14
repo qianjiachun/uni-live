@@ -7,7 +7,7 @@
         @apply p-0 m-0 box-border;
     }
     html, body {
-        @apply h-full;
+        @apply h-full bg-black;
     }
     .popup-top {
         user-select: none;
