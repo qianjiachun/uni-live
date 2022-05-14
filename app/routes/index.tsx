@@ -5,7 +5,7 @@ import { useLatest } from "ahooks";
 import copy from "copy-to-clipboard";
 import Danmaku from "rc-danmaku";
 import { useEffect, useRef, useState } from "react";
-import { Button, Field, Popup, Radio, Switch, Tabs, Toast, Cell, Dialog, Slider } from "react-vant";
+import { Button, Field, Popup, Radio, Tabs, Toast, Cell, Dialog, Slider } from "react-vant";
 import stylesVant from "react-vant/lib/index.css";
 import VideoItem from "~/components/VideoItem";
 import { Ex_WebSocket_UnLogin } from "~/utils/libs/websocket";

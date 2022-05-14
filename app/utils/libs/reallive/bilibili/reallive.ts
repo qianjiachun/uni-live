@@ -1,4 +1,4 @@
-import { getRandom } from "~/utils";
+// import { getRandom } from "~/utils";
 export const QN_BILIBILI: any = {
 	"原画": "10000",
 	"蓝光": "400",
