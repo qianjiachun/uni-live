@@ -55,9 +55,11 @@ export function getRealLive_Bilibili(
       .then((ret) => {
         let rurl = "";
         let streamList = ret.data?.playurl_info?.playurl?.stream;
-        let hlsInfo = streamList.length > 0 ? streamList[streamList.length - 1]?.format[0]?.codec[0] : null;
-        if (hlsInfo) {
-          rurl = `${hlsInfo?.url_info[0]?.host}${hlsInfo?.base_url}`;
+        if (streamList) {
+          let hlsInfo = streamList.length > 0 ? streamList[streamList.length - 1]?.format[0]?.codec[0] : null;
+          if (hlsInfo) {
+            rurl = `${hlsInfo?.url_info[0]?.host}${hlsInfo?.base_url}`;
+          }
         }
         resolve(rurl);
       })
