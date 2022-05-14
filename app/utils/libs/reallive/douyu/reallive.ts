@@ -62,11 +62,11 @@ export function getRealLive_Douyu(data: string, qn: string): Promise<string> {
         if (result == "0") {
           realLive = "";
         } else {
-			if (cl === "0") {
-				realLive = "https://akm-tct.douyucdn.cn/live/" + result + ".flv?uuid=";
-			} else {
-				realLive = "https://akm-tct.douyucdn.cn/live/" + result + "_" + cl + ".flv?uuid=";
-			}
+        if (cl === "0") {
+          realLive = "https://akm-tct.douyucdn.cn/live/" + result + ".m3u8?uuid=";
+        } else {
+          realLive = "https://akm-tct.douyucdn.cn/live/" + result + "_" + cl + ".m3u8?uuid=";
+        }
           
         //   realLive = String(ret.data.url).replace("m3u8", "flv");
         }

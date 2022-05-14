@@ -62,6 +62,9 @@ const Index = () => {
 
 	const danmakuRef = useRef<Danmaku | null>(null);
 
+	// 弹幕不透明度 0 - 100
+	const [danmakuOpacity, setDanmakuOpacity] = useState<number>(90);
+
 	const stt = new STT();
 	const fetcher = useFetcher();
 	const fetcherRid = useFetcher();
@@ -107,14 +110,14 @@ const Index = () => {
 	}
 	
 	const loadShareVideoList = () => {
-		let list = JSON.parse(decodeURIComponent(shareVideoList));
+		let list = JSON.parse(decodeURIComponent(window.atob(shareVideoList)));
 		if (list) {
 			loadVideoList(list);
 		}
 	}
 
 	const loadShareDanmakuList = () => {
-		let list = JSON.parse(decodeURIComponent(shareDanmakuList));
+		let list = JSON.parse(decodeURIComponent(window.atob(shareDanmakuList)));
 		if (list) {
 			loadDanmakuList(list);
 		}
@@ -122,16 +125,15 @@ const Index = () => {
 
 	const initDanmaku = () => {
 		const danmaku = new Danmaku("#danmaku", {
-			opacity: 0.9
+			opacity: danmakuOpacity / 100,
 		});
     	danmakuRef.current = danmaku;
 	}
 
 	useEffect(() => {
 		injectStyle("Global", `
-		.bullet-item {
-			z-index: 40 !important;
-		}`);
+		.bullet-item {z-index: 40 !important;}
+		#danmaku{overflow-y: auto !important;overflow-x: hidden !important;}`);
 		initDanmaku();
 		if (shareVideoList) {
 			loadShareVideoList();
@@ -307,8 +309,8 @@ const Index = () => {
 	const onClickShare = () => {
 		let url = location.origin;
 		url += url.includes("?") ? "&video=" : "?video=";
-		url += encodeURIComponent(JSON.stringify(getLocalVideoList(videoOrderList)));
-		url += "&danmaku=" + encodeURIComponent(JSON.stringify(getLocalDanmakuList(danmakuList)));
+		url += window.btoa(encodeURIComponent(JSON.stringify(getLocalVideoList(videoOrderList))));
+		url += "&danmaku=" + window.btoa(encodeURIComponent(JSON.stringify(getLocalDanmakuList(danmakuList))));
 		Dialog.confirm({
 			title: '是否复制分享链接',
 			message: '保存当前的视频列表，再次访问会自动添加',
@@ -384,6 +386,14 @@ const Index = () => {
 						</div>
 					</Tabs.TabPane>
 					<Tabs.TabPane title="弹幕">
+						<Field label="不透明度">
+							<Slider value={danmakuOpacity} min={0} max={100} onChange={(v: number) => {
+								if (danmakuRef.current) {
+									danmakuRef.current.opacity = v / 100;
+								}
+								setDanmakuOpacity(v);
+							}}/>
+						</Field>
 						<Field value={danmakuUrl} center clearable label="直播间" placeholder="仅斗鱼,支持无限个直播间弹幕同时展示" button={
 							<Button loading={isConnectDanmakuLoading} size="small" type="primary" onClick={() => {addDanmaku(danmakuUrl)}}>
 								添加
