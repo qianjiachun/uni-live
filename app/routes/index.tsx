@@ -5,13 +5,12 @@ import { useLatest } from "ahooks";
 import copy from "copy-to-clipboard";
 import Danmaku from "rc-danmaku";
 import { useEffect, useRef, useState } from "react";
-import { Button, Field, Popup, Radio, Tabs, Toast, Cell, Dialog, Slider } from "react-vant";
+import { Button, Field, Popup, Radio, Tabs, Toast, Cell, Dialog, Slider, Collapse } from "react-vant";
 import stylesVant from "react-vant/lib/index.css";
 import VideoItem from "~/components/VideoItem";
 import { Ex_WebSocket_UnLogin } from "~/utils/libs/websocket";
 import { STT } from "~/utils/libs/stt";
 import { arrayMoveDown, arrayMoveUp, deepCopyArray, eval1, getLastField, getStrMiddle, injectStyle, isRid, parseUrlParams, sleep } from "~/utils";
-
 
 export const links: LinksFunction = () => {
 	return [
@@ -339,7 +338,7 @@ const Index = () => {
 							height: `${showType === "overlap" ? "100%" : "auto"}`,
 							width: `${showType === "overlap" ? "100%" : "auto"}`,
 							display: `${showType === "overlap" ? item.id === getLastVideoId() ? "block" : "none" : "block"}`,
-						}} key={item.id} id={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
+						}} key={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
 					)
 				})}
 			</div>
@@ -355,7 +354,7 @@ const Index = () => {
 				</div>
 				<Tabs>
 					<Tabs.TabPane title="视频">
-					<Field label="显示">
+						<Field label="显示">
 							<Radio.Group value={showType} direction="horizontal" onChange={(v) => setShowType(v as string)}>
 								<Radio name="overlap">重叠</Radio>
 								<Radio name="line">并列</Radio>
@@ -434,6 +433,54 @@ const Index = () => {
 								)
 							})}
 						</div>
+					</Tabs.TabPane>
+					<Tabs.TabPane title="IOS">
+						<Button size="small" type="primary" className="w-full" onClick={() => {
+							let videoList = document.querySelectorAll("video");
+							videoList.forEach(item => {
+								item.muted = true;
+							})
+							videoList.forEach(item => {
+								item.play();
+							})
+						}}>全部静音播放</Button>
+						<Button size="small" type="primary" className="w-full" onClick={() => {
+							let videoList = document.querySelectorAll("video");
+							videoList.forEach(item => {
+								item.muted = false;
+							})
+						}}>全部打开声音</Button>
+						<Collapse accordion>
+							<Collapse.Item title="IPhone播放参考" name="iphone">
+								<span className="font-bold text-red-300">非m3u8的直播流IPhone无法播放</span><br/>
+								1. 浏览器使用<span className="font-bold">桌面模式</span>打开网页<br/>
+								2. 等视频加载出来，点击并列显示，点击<span className="font-bold">【全部静音播放】</span><br/>
+								3. 此时视频都会全屏播放，使用双指缩小还原<br/>
+								4. 调整好时间，点击<span className="font-bold">【全部打开声音】，恢复重叠显示即可</span><br/>
+								<span className="font-bold text-red-300">不一定有用，有解决方案的请联系作者</span>
+							</Collapse.Item>
+							<Collapse.Item title="IPad播放参考" name="ipad">
+								IPad是可以播放flv流的直播的，只是因为系统的原因，导致无法同时播放两个有声音的视频<br />
+								可以尝试IPhone的方法，在播放时手动进行网页全屏，并不一定有效<br />
+								<span className="font-bold text-red-300">征集解决方案，请联系作者</span>
+							</Collapse.Item>
+						</Collapse>
+					</Tabs.TabPane>
+					<Tabs.TabPane title="常见问题">
+						<Collapse accordion>
+							<Collapse.Item title="黑屏、只有齿轮" name="1">
+								1. 可能是没有添加视频源，请切换到视频标签添加视频<br/>
+								2. 正在加载，请等待十几秒（服务器请求量大），请不要频繁刷新<br/>
+								3. 可能使用了代理、加速器导致网络问题，尝试修复网络（断网急救箱、DNS修复等）
+							</Collapse.Item>
+							<Collapse.Item title="视频没声音" name="2">
+								1. 视频默认静音（浏览器限制），请自己打开声音
+							</Collapse.Item>
+							<Collapse.Item title="只有部分视频能播放" name="3">
+								1. 如果是IPhone，只能播放m3u8流的直播，播放不了说明不是m3u8流。这个无解，建议换安卓或PC<br/>
+								2. 可能视频卡了，尝试刷新一下网页等待一下，请不要频繁刷新
+							</Collapse.Item>
+						</Collapse>
 					</Tabs.TabPane>
 				</Tabs>
 			</Popup>

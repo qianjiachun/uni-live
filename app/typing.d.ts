@@ -2,6 +2,8 @@ declare interface Window {
     ub98484234: any,
     flvjs: any,
     renderReactPlayer: any;
+    UAParser: any;
+    Aliplayer: any;
 }
 
 declare class STT {
