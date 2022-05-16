@@ -19,7 +19,6 @@
     "@remix-run/node": "^1.4.3",
     "@remix-run/react": "^1.4.3",
     "@remix-run/serve": "^1.4.3",
-    "ahooks": "^3.3.10",
     "clsx": "^1.1.1",
     "copy-to-clipboard": "^3.3.1",
     "rc-danmaku": "^1.1.0",

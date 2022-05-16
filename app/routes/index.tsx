@@ -1,7 +1,6 @@
 import { ArrowDown, ArrowUp, Cross, GuideO, Setting } from "@react-vant/icons";
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { useLatest } from "ahooks";
 import copy from "copy-to-clipboard";
 import Danmaku from "rc-danmaku";
 import { useEffect, useRef, useState } from "react";
@@ -13,6 +12,7 @@ import { STT } from "~/utils/libs/stt";
 import { arrayMoveDown, arrayMoveUp, deepCopyArray, eval1, getLastField, getStrMiddle, injectStyle, isRid, parseUrlParams, sleep } from "~/utils";
 import RGL, { WidthProvider } from "react-grid-layout"
 import clsx from "clsx";
+import useLatest from "~/hooks/useLatest";
 const ReactGridLayout = WidthProvider(RGL);
 
 
@@ -362,7 +362,7 @@ const Index = () => {
 									width: "100%",
 									// height: `${showType === "overlap" ? "100%" : "auto"}`,
 									// width: `${showType === "overlap" ? "100%" : "auto"}`,
-								}} key={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
+								}} url={item.url} order={item.order} src={item.stream}></VideoItem>
 							</div>
 							
 						)
@@ -501,7 +501,7 @@ const Index = () => {
 						<Collapse accordion>
 							<Collapse.Item title="IPhone播放参考" name="iphone">
 								<span className="font-bold text-red-300">非m3u8的直播流IPhone无法播放</span><br/>
-								1. 浏览器使用<span className="font-bold">桌面模式</span>打开网页<br/>
+								1. 浏览器使用<span className="font-bold">桌面模式</span>打开网页（不用桌面模式可能也行）<br/>
 								2. 等视频加载出来，点击并列显示，点击<span className="font-bold">【全部静音播放】</span><br/>
 								3. 此时视频都会全屏播放，使用双指缩小还原<br/>
 								4. 调整好时间，点击<span className="font-bold">【全部打开声音】，恢复重叠显示即可</span><br/>
