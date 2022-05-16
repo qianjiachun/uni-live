@@ -7,4 +7,10 @@ module.exports = {
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: "build/index.js",
   // publicPath: "/build/",
+  serverDependenciesToBundle: [
+    "react-grid-layout",
+    "lodash.isequal",
+    "react-draggable",
+    "react-resizable"
+  ],
 };

@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Cross, Setting } from "@react-vant/icons";
+import { ArrowDown, ArrowUp, Cross, GuideO, Setting } from "@react-vant/icons";
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useLatest } from "ahooks";
@@ -11,6 +11,10 @@ import VideoItem from "~/components/VideoItem";
 import { Ex_WebSocket_UnLogin } from "~/utils/libs/websocket";
 import { STT } from "~/utils/libs/stt";
 import { arrayMoveDown, arrayMoveUp, deepCopyArray, eval1, getLastField, getStrMiddle, injectStyle, isRid, parseUrlParams, sleep } from "~/utils";
+import RGL, { WidthProvider } from "react-grid-layout"
+import clsx from "clsx";
+const ReactGridLayout = WidthProvider(RGL);
+
 
 export const links: LinksFunction = () => {
 	return [
@@ -38,10 +42,11 @@ const danmakuColor: any = {
 }
 
 const Index = () => {
+
 	const {shareVideoList, shareDanmakuList} = useLoaderData();
 	const [isShowSetting, setIsShowSetting] = useState<boolean>(false);
 	// overlap重叠 line并列
-	const [showType, setShowType] = useState<string>("overlap");
+	const [showType, setShowType] = useState<IShowType>("overlap");
 	// 视频地址数组
 	const [videoList, setVideoList] = useState<IVideo[]>([]);
 	const [videoOrderList, setVideoOrderList] = useState<IVideoOrder[]>([]);
@@ -133,7 +138,10 @@ const Index = () => {
 		injectStyle("Global", `
 		.bullet-item {z-index: 40 !important;}
 		.bullet-item-text {font-size:1.5rem !important; font-weight: bold !important;}
-		#danmaku{position:absolute !important}`);
+		#danmaku{position:absolute !important}
+		.react-grid-item>.react-resizable-handle::after{border:4px solid white !important}
+		.react-grid-item.react-grid-placeholder{background-color:gray !important}
+		`);
 		initDanmaku();
 		if (shareVideoList) {
 			loadShareVideoList();
@@ -323,14 +331,44 @@ const Index = () => {
 	const getLastVideoId = () => {
 		return videoOrderListRef.current[videoOrderListRef.current.length - 1].id;
 	}
+	const getVideoStreamById = (id: string): string => {
+		for (let i = 0; i < videoList.length; i++) {
+			let item = videoList[i];
+			if (item.id === id) {
+				return item.stream
+			}
+		}
+		return "";
+	}
 
 	
 	return (
 		<div className="w-full h-full bg-black">
 			<div id="danmaku" className="w-full h-full absolute"></div>
 			{/* 视频区 */}
-			<div className="videolist flex w-full h-full flex-wrap bg-black">
-				{videoList.map(item => {
+			<div className="videolist w-full h-full">
+				<ReactGridLayout
+				className="overlap flex flex-wrap bg-black"
+				cols={lineCount}>
+					{videoList.map(item => {
+						return (
+							<div style={{
+								flex: `${lineCount ? "0 0 " + String(100/lineCount) + "%" : ""}`,
+								position: `${showType === "overlap" ? "absolute" : "inherit"}`,
+								display: `${showType === "overlap" ? item.id === getLastVideoId() ? "block" : "none" : "block"}`,
+							}} key={item.id} className={clsx([showType === "overlap" && "overlap", showType === "line" && "line-item ", "w-full h-full"])}>
+								<VideoItem style={{
+									height: "100%",
+									width: "100%",
+									// height: `${showType === "overlap" ? "100%" : "auto"}`,
+									// width: `${showType === "overlap" ? "100%" : "auto"}`,
+								}} key={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
+							</div>
+							
+						)
+					})}
+				</ReactGridLayout>
+				{/* {videoList.map(item => {
 					return (
 						<VideoItem style={{
 							flex: `${lineCount ? "0 0 " + String(100/lineCount) + "%" : ""}`,
@@ -340,11 +378,16 @@ const Index = () => {
 							display: `${showType === "overlap" ? item.id === getLastVideoId() ? "block" : "none" : "block"}`,
 						}} key={item.id} url={item.url} order={item.order} src={item.stream}></VideoItem>
 					)
-				})}
+				})} */}
 			</div>
 			{/* 设置 */}
 			<Popup className="popup overflow-hidden" visible={isShowSetting} position="bottom" style={{height: "50%"}} onClose={() => setIsShowSetting(false)}>
 				<div className="popup-top">
+					<div className="douyuex">
+						<a href="https://xiaochunchun.gitee.io/douyuex/" target="_blank" rel="noreferrer">
+							<svg className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2978" width="24" height="24"><path d="M1006.1 412.7l-187.5-141c0-0.2 0.1-0.3 0.1-0.4V121.4c0-2.3-1.9-4.2-4.2-4.2h-92.4c-2.3 0-4.2 1.9-4.2 4.2V196L535.3 58.8c-7.3-5.5-16-8.4-25.1-8.4-9.2 0-17.9 2.9-25.2 8.5L16.7 412.5C7.8 419.2 2.1 429 0.5 440.1c-2.1 14.8 3.8 29.5 16.2 39.3 4.3 3.3 9.2 5.7 14.5 7 13 3.2 25.8 0.6 36-7.1L505 148.6c3.1-2.3 7.4-2.3 10.4 0l441.8 332c7.3 5.5 16 8.4 25.1 8.4 13.7 0 26.3-6.5 34.2-17.7 13.3-18.8 7.9-44.9-10.4-58.6z" p-id="2979" fill="#8a8a8a"></path><path d="M906.7 499.4l-193.2-140-196.7-142.5c-3.4-2.5-8.1-2.5-11.5 0L308.7 359.4l-193.2 140c-5.6 4.1-9 10.6-9 17.6v392.1c0 35.5 29 64.5 64.5 64.5h246.7V716.2c0-30 24.6-54.6 54.6-54.6h77.5c30 0 54.6 24.6 54.6 54.6v257.4h246.7c35.5 0 64.5-29 64.5-64.5V517c0.1-6.9-3.3-13.5-8.9-17.6z" p-id="2980" fill="#8a8a8a"></path></svg>
+						</a>
+					</div>
 					<div className="github">
 						<a href="https://github.com/qianjiachun/uni-live" target="_blank" rel="noreferrer"><svg className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7184" width="24" height="24"><path d="M511.957333 21.333333C241.024 21.333333 21.333333 240.981333 21.333333 512c0 216.832 140.544 400.725333 335.573334 465.664 24.490667 4.394667 32.256-10.069333 32.256-23.082667 0-11.690667 0.256-44.245333 0-85.205333-136.448 29.610667-164.736-64.64-164.736-64.64-22.314667-56.704-54.4-71.765333-54.4-71.765333-44.586667-30.464 3.285333-29.824 3.285333-29.824 49.194667 3.413333 75.178667 50.517333 75.178667 50.517333 43.776 75.008 114.816 53.333333 142.762666 40.789333 4.522667-31.658667 17.152-53.376 31.189334-65.536-108.970667-12.458667-223.488-54.485333-223.488-242.602666 0-53.546667 19.114667-97.322667 50.517333-131.669334-5.034667-12.330667-21.930667-62.293333 4.778667-129.834666 0 0 41.258667-13.184 134.912 50.346666a469.802667 469.802667 0 0 1 122.88-16.554666c41.642667 0.213333 83.626667 5.632 122.88 16.554666 93.653333-63.488 134.784-50.346667 134.784-50.346666 26.752 67.541333 9.898667 117.504 4.864 129.834666 31.402667 34.346667 50.474667 78.122667 50.474666 131.669334 0 188.586667-114.730667 230.016-224.042666 242.090666 17.578667 15.232 33.578667 44.672 33.578666 90.453334v135.850666c0 13.141333 7.936 27.605333 32.853334 22.869334C862.250667 912.597333 1002.666667 728.746667 1002.666667 512 1002.666667 240.981333 783.018667 21.333333 511.957333 21.333333z" p-id="7185" fill="#8a8a8a"></path></svg></a>
 					</div>
@@ -355,9 +398,10 @@ const Index = () => {
 				<Tabs>
 					<Tabs.TabPane title="视频">
 						<Field label="显示">
-							<Radio.Group value={showType} direction="horizontal" onChange={(v) => setShowType(v as string)}>
+							<Radio.Group value={showType} direction="horizontal" onChange={(v) => setShowType(v as IShowType)}>
 								<Radio name="overlap">重叠</Radio>
 								<Radio name="line">并列</Radio>
+								<Radio name="grid">网格</Radio>
 							</Radio.Group>
 						</Field>
 						<Field disabled={showType==="overlap"} type="digit" label="一行几个" value={String(lineCount)} onChange={(v) => setLineCount(Number(v))}></Field>
@@ -379,6 +423,10 @@ const Index = () => {
 								return (
 									<Cell key={item.id} title={`${item.url} ${item.qnName}`}>
 										<div className="flex justify-end h-full items-center">
+											<GuideO className="ml-2 cursor-pointer text-xl" onClick={() => {
+												copy(getVideoStreamById(item.id));
+												Toast.success("成功复制直播流地址");
+											}} />
 											<ArrowUp style={{display: `${index === 0 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={() => {setVideoOrderList(list => arrayMoveUp(deepCopyArray(list), index))}} />
 											<ArrowDown style={{display: `${index === videoOrderList.length - 1 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={() => {setVideoOrderList(list => arrayMoveDown(deepCopyArray(list), index))}} />
 											<Cross className="ml-2 cursor-pointer text-xl" onClick={() => {

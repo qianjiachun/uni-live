@@ -29,7 +29,23 @@
     }
     .popup-top .github {
         position: absolute;
+        left: 34px;
+    }
+    .popup-top .douyuex {
+        position: absolute;
         left: 0;
     }
-    
+
+    .overlap {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+    }
+
+    .line-item {
+        position: initial !important;
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+    }
 }

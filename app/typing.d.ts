@@ -44,3 +44,5 @@ interface IDanmaku {
     url: string;
     ws: any;
 }
+
+type IShowType = "overlap" | "line" | "grid";
