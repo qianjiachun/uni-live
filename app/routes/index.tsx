@@ -329,7 +329,7 @@ const Index = () => {
 	}
 
 	const getLastVideoId = () => {
-		return videoOrderListRef.current[videoOrderListRef.current.length - 1].id;
+		return videoOrderListRef.current[videoOrderListRef.current.length - 1]?.id;
 	}
 	const getVideoStreamById = (id: string): string => {
 		for (let i = 0; i < videoList.length; i++) {
@@ -349,6 +349,7 @@ const Index = () => {
 			<div className="videolist w-full h-full">
 				<ReactGridLayout
 				className="overlap flex flex-wrap bg-black"
+				isDraggable={showType === "grid"}
 				cols={lineCount}>
 					{videoList.map(item => {
 						return (
