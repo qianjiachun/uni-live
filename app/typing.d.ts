@@ -3,7 +3,6 @@ declare interface Window {
     flvjs: any,
     renderReactPlayer: any;
     UAParser: any;
-    Aliplayer: any;
 }
 
 declare class STT {
@@ -46,3 +45,5 @@ interface IDanmaku {
 }
 
 type IShowType = "overlap" | "line" | "grid";
+
+type IStreamType = "hls" | "flv";

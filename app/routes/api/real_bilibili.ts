@@ -8,8 +8,9 @@ export const action: ActionFunction = async ({request}) => {
     let rid = formData.get("rid") as string;
     let qn = QN_BILIBILI[formData.get("qn") as string];
     let url = formData.get("url") as string;
+    let type = formData.get("type") as IStreamType;
 
-    let stream = await getRealLive_Bilibili(rid, qn);
+    let stream = await getRealLive_Bilibili(rid, qn, type);
     ret = {
         type: "stream",
         url,

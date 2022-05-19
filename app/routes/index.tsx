@@ -42,7 +42,7 @@ const danmakuColor: any = {
 }
 
 const Index = () => {
-
+	const [streamType, setStreamType] = useState<IStreamType>("flv");
 	const {shareVideoList, shareDanmakuList} = useLoaderData();
 	const [isShowSetting, setIsShowSetting] = useState<boolean>(false);
 	// overlap重叠 line并列
@@ -135,6 +135,11 @@ const Index = () => {
 	}
 
 	useEffect(() => {
+		const ua = window.UAParser();
+		let osName = String(ua?.os?.name).toLocaleLowerCase();
+		if (osName.includes("ios") || osName.includes("mac")) {
+			setStreamType("hls");
+		}
 		injectStyle("Global", `
 		.bullet-item {z-index: 40 !important;}
 		.bullet-item-text {font-size:1.5rem !important; font-weight: bold !important;}
@@ -166,21 +171,20 @@ const Index = () => {
 			if (scriptDom) {
 				scriptDom.remove();
 			}
-			fetcher.submit({rid: data.rid, url: data.url, param, tt, qn: data.qn}, {action: "/api/real_douyu", method: "post"});
+			fetcher.submit({rid: data.rid, url: data.url, param, tt, qn: data.qn, type: streamType}, {action: "/api/real_douyu", method: "post"});
 		} else {
+			let id = String(new Date().getTime());
 			if (!data.stream || data.stream == "" || data.stream.length < 10) {
 				Toast.fail("获取直播流失败，可能没有对应的清晰度或未开播");
-				setIsAddVideoLoading(false);
-				return;
+			} else {
+				setVideoList((list) => [...list, {
+					id,
+					order: list.length - 1,
+					url: data.url,
+					rid: data.rid,
+					stream: data.stream
+				}]);
 			}
-			let id = String(new Date().getTime());
-			setVideoList((list) => [...list, {
-				id,
-				order: list.length - 1,
-				url: data.url,
-				rid: data.rid,
-				stream: data.stream
-			}]);
 			setVideoOrderList(list => [...list, {id, url: data.url, qnName: data.qnName}]);
 		}
 		setIsAddVideoLoading(false);
@@ -234,7 +238,7 @@ const Index = () => {
 			}
 			fetcher.submit({url, rid, qn: qnName}, {action: "/api/real_douyu_script", method: "post"});
 		} else if (url.includes("bilibili.com")) {
-			fetcher.submit({url, rid, qn: qnName}, {action: "/api/real_bilibili", method: "post"});
+			fetcher.submit({url, rid, qn: qnName, type: streamType}, {action: "/api/real_bilibili", method: "post"});
 		} else if (url.includes("huya.com")) {
 			fetcher.submit({url, rid, qn: qnName}, {action: "/api/real_huya", method: "post"});
 		} else {

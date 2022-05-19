@@ -11,7 +11,8 @@ export const action: ActionFunction = async ({request}) => {
     let rid = formData.get("rid");
     let url = formData.get("url") as string;
     let postData = `${param}&ver=219032101&rid=${rid}`;
-    let stream = await getRealLive_Douyu(postData, qn);
+    let type = formData.get("type") as IStreamType;
+    let stream = await getRealLive_Douyu(postData, qn, type);
     ret = {
         type: "stream",
         url,

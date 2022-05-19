@@ -39,7 +39,8 @@ export const QN_BILIBILI: any = {
 
 export function getRealLive_Bilibili(
   room_id: string,
-  qn: string
+  qn: string,
+  type: IStreamType
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     fetch(
@@ -56,7 +57,7 @@ export function getRealLive_Bilibili(
         let rurl = "";
         let streamList = ret.data?.playurl_info?.playurl?.stream;
         if (streamList) {
-          let hlsInfo = streamList.length > 0 ? streamList[streamList.length - 1]?.format[0]?.codec[0] : null;
+          let hlsInfo = streamList.length > 0 ? streamList[type === "flv" ? 0 : streamList.length - 1]?.format[0]?.codec[0] : null;
           if (hlsInfo) {
             rurl = `${hlsInfo?.url_info[0]?.host}${hlsInfo?.base_url}${hlsInfo?.url_info[0]?.extra}`;
           }

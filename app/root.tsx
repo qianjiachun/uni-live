@@ -37,6 +37,7 @@ export default function App() {
         <script src="https://unpkg.zhimg.com/react-player@2.10.1/dist/ReactPlayer.standalone.js"></script>
         <script crossOrigin="anonymous" integrity="sha512-t8vdA86yKUE154D1VlNn78JbDkjv3HxdK/0MJDMBUXUjshuzRgET0ERp/0MAgYS+8YD9YmFwnz6+FWLz1gRZaw==" src="https://lib.baomitu.com/crypto-js/4.1.1/core.min.js"></script>
         <script crossOrigin="anonymous" integrity="sha512-3sGbaDyhjGb+yxqvJKi/gl5zL4J7P5Yh4GXzq+E9puzlmVkIctjf4yP6LfijOUvtoBI3p9pLKia9crHsgYDTUQ==" src="https://lib.baomitu.com/crypto-js/4.1.1/md5.min.js"></script>
+        <script crossOrigin="anonymous" integrity="sha512-PckvNJOvO44xIN0gdiiKiHZsAbDzA5ofFcFPCsy4Ns5HKHLFP1FEKGMaYWoYWEzhhyJK93N7fsERF7UP3nzsug==" src="https://lib.baomitu.com/UAParser.js/0.8.1/ua-parser.min.js"></script>
         <LiveReload />
       </body>
     </html>

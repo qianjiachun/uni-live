@@ -1,9 +1,9 @@
 export const QN_DOUYU: any = {
-	"原画": "0",
-	"蓝光": "4000p",
-	"超清": "2000p",
-	"高清": "1200p",
-	"流畅": "550p"
+  原画: "0",
+  蓝光: "4000p",
+  超清: "2000p",
+  高清: "1200p",
+  流畅: "550p",
 };
 export function getRealLive_DouyuScript(rid: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -28,7 +28,11 @@ export function getRealLive_DouyuScript(rid: string): Promise<string> {
   });
 }
 
-export function getRealLive_Douyu(data: string, qn: string): Promise<string> {
+export function getRealLive_Douyu(
+  data: string,
+  qn: string,
+  type: IStreamType
+): Promise<string> {
   return new Promise((resolve, reject) => {
     fetch("https://m.douyu.com/api/room/ratestream", {
       method: "POST",
@@ -62,13 +66,15 @@ export function getRealLive_Douyu(data: string, qn: string): Promise<string> {
         if (result == "0") {
           realLive = "";
         } else {
-        if (cl === "0") {
-          realLive = "https://akm-tct.douyucdn.cn/live/" + result + ".m3u8?uuid=";
-        } else {
-          realLive = "https://akm-tct.douyucdn.cn/live/" + result + "_" + cl + ".m3u8?uuid=";
-        }
-          
-        //   realLive = String(ret.data.url).replace("m3u8", "flv");
+          if (cl === "0") {
+            realLive = `https://akm-tct.douyucdn.cn/live/${result}.m3u8?uuid=`;
+          } else {
+            realLive = `https://akm-tct.douyucdn.cn/live/${result}_${cl}.m3u8?uuid=`;
+          }
+          if (type === "flv") {
+            // realLive = String(ret.data.url).replace("m3u8", "flv");
+			realLive = String(realLive).replace("m3u8", "flv");
+          }
         }
         resolve(realLive);
       })
