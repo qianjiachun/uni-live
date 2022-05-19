@@ -7,12 +7,11 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Field, Popup, Radio, Tabs, Toast, Cell, Dialog, Slider, Collapse } from "react-vant";
 import stylesVant from "react-vant/lib/index.css";
 import VideoItem from "~/components/VideoItem";
-import { Ex_WebSocket_UnLogin } from "~/utils/libs/websocket";
-import { STT } from "~/utils/libs/stt";
 import { arrayMoveDown, arrayMoveUp, deepCopyArray, eval1, getLastField, getStrMiddle, injectStyle, isRid, parseUrlParams, sleep } from "~/utils";
 import RGL, { WidthProvider } from "react-grid-layout"
 import clsx from "clsx";
 import useLatest from "~/hooks/useLatest";
+import { deserialize, DouyuDanmu } from "douyu-danmu-ws";
 const ReactGridLayout = WidthProvider(RGL);
 
 
@@ -69,7 +68,6 @@ const Index = () => {
 	// 弹幕不透明度 0 - 100
 	const [danmakuOpacity, setDanmakuOpacity] = useState<number>(90);
 
-	const stt = new STT();
 	const fetcher = useFetcher();
 	const fetcherRid = useFetcher();
 
@@ -273,7 +271,7 @@ const Index = () => {
 		const data = fetcherRid.data;
 		if (!data) return;
 		if ("type" in data && data.type === "douyu_rid") {
-			let ws: any = new Ex_WebSocket_UnLogin(data.rid, (msg: string) => {
+			let ws = new DouyuDanmu(data.rid, (msg: string) => {
 				msgHandler(msg);
 			}, () => {
 				closeWs(ws);
@@ -292,7 +290,7 @@ const Index = () => {
 	const msgHandler = (msg: string) => {
 		let msgType = getStrMiddle(msg, "type@=", "/");
 		if (msgType === "chatmsg") {
-			let data: any = stt.deserialize(msg);
+			let data: any = deserialize(msg);
 			danmakuRef.current?.emit(data.txt, {
 				color: danmakuColor[data.col]
 			});

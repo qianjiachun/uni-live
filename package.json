@@ -21,6 +21,7 @@
     "@remix-run/serve": "^1.5.1",
     "clsx": "^1.1.1",
     "copy-to-clipboard": "^3.3.1",
+    "douyu-danmu-ws": "^1.0.4",
     "rc-danmaku": "^1.1.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
