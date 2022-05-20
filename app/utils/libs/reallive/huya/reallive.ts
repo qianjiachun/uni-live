@@ -5,11 +5,10 @@ export function getRealLive_Huya(room_id: string): Promise<string> {
   return new Promise((resolve, reject) => {
     fetch(`https://www.huya.com/${room_id}`, {
       method: "GET",
-      credentials: "include",
       headers: {
-        "user-agent":
-          "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
-      },
+        'Content-Type': 'application/x-www-form-urlencoded',
+        "User-Agent": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) "
+      }
     })
       .then((res) => {
         return res.text();

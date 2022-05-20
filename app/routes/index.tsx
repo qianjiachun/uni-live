@@ -1,17 +1,19 @@
 import { ArrowDown, ArrowUp, Cross, GuideO, Setting } from "@react-vant/icons";
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import copy from "copy-to-clipboard";
 import Danmaku from "rc-danmaku";
 import { useEffect, useRef, useState } from "react";
 import { Button, Field, Popup, Radio, Tabs, Toast, Cell, Dialog, Slider, Collapse } from "react-vant";
 import stylesVant from "react-vant/lib/index.css";
 import VideoItem from "~/components/VideoItem";
-import { arrayMoveDown, arrayMoveUp, deepCopyArray, eval1, getLastField, getStrMiddle, injectStyle, isRid, parseUrlParams, sleep } from "~/utils";
+import { arrayMoveDown, arrayMoveUp, deepCopyArray, getLastField, getStrMiddle, injectStyle, isRid, parseUrlParams, sleep } from "~/utils";
 import RGL, { WidthProvider } from "react-grid-layout"
 import clsx from "clsx";
 import useLatest from "~/hooks/useLatest";
 import { deserialize, DouyuDanmu } from "douyu-danmu-ws";
+import { apiGetBilibiliStream, apiGetDouyuRealRid, apiGetDouyuScript, apiGetDouyuStream, apiGetHuyaStream } from "~/apis";
+import { getDouyuScriptParam } from "~/utils/libs/reallive/douyu/reallive";
 const ReactGridLayout = WidthProvider(RGL);
 
 
@@ -50,7 +52,7 @@ const Index = () => {
 	const [videoList, setVideoList] = useState<IVideo[]>([]);
 	const [videoOrderList, setVideoOrderList] = useState<IVideoOrder[]>([]);
 	const videoOrderListRef = useLatest<IVideoOrder[]>(videoOrderList);
-	const [qnName, setQnName] = useState<string>("原画");
+	const [qnName, setQnName] = useState<IQnType>("原画");
 
 	// 每行个数
 	const [lineCount, setLineCount] = useState<number>(2);
@@ -68,14 +70,11 @@ const Index = () => {
 	// 弹幕不透明度 0 - 100
 	const [danmakuOpacity, setDanmakuOpacity] = useState<number>(90);
 
-	const fetcher = useFetcher();
-	const fetcherRid = useFetcher();
-
 	const loadVideoList = async (list: any) => {
 		let count = 0;
 		for (let i = 0; i < list.length; i++) {
 			let item = list[i];
-			addVideo(item.url, item.qnName);
+			addVideo(item.url, item.qnName, streamType);
 			count++;
 			while (count !== videoOrderListRef.current.length) {
 				await sleep(500);
@@ -158,36 +157,6 @@ const Index = () => {
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-	useEffect(() => {
-		const data = fetcher.data;
-		if (!data) return;
-		if ("type" in data && data.type === "script") {
-			eval1(data.script, "exScript1");
-			let tt = Math.round(new Date().getTime()/1000).toString();
-			let param = window.ub98484234(data.rid, "10000000000000000000000000001501", tt);
-			let scriptDom = document.getElementById("exScript1");
-			if (scriptDom) {
-				scriptDom.remove();
-			}
-			fetcher.submit({rid: data.rid, url: data.url, param, tt, qn: data.qn, type: streamType}, {action: "/api/real_douyu", method: "post"});
-		} else {
-			let id = String(new Date().getTime());
-			if (!data.stream || data.stream == "" || data.stream.length < 10) {
-				Toast.fail("获取直播流失败，可能没有对应的清晰度或未开播");
-			} else {
-				setVideoList((list) => [...list, {
-					id,
-					order: list.length - 1,
-					url: data.url,
-					rid: data.rid,
-					stream: data.stream
-				}]);
-			}
-			setVideoOrderList(list => [...list, {id, url: data.url, qnName: data.qnName}]);
-		}
-		setIsAddVideoLoading(false);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [fetcher.data])
 
 	const getLocalVideoList = (videoOrderList: IVideoOrder[]) => {
 		let data = [];
@@ -221,12 +190,12 @@ const Index = () => {
 	}, [danmakuList])
 
 
-	const addVideo = (url: string, qnName: string) => {
-		// 拿到视频地址，对视频地址解析，获得视频直播流地址
-		// 添加到VideoList中去
+	const addVideo = async (url: string, qnName: IQnType, streamType: IStreamType) => {
 		if (url === "") return;
 		setIsAddVideoLoading(true);
 		let rid = getLastField(url);
+		let id = String(new Date().getTime());
+		let stream = "";
 		if (url.includes("douyu.com")) {
 			if (!isRid(rid)) {
 				let queryObj = parseUrlParams(url);
@@ -234,28 +203,34 @@ const Index = () => {
 					rid = queryObj.rid;
 				}
 			}
-			fetcher.submit({url, rid, qn: qnName}, {action: "/api/real_douyu_script", method: "post"});
+			let { rid: realRid, script } = await apiGetDouyuScript(rid);
+			rid = realRid;
+			let param = getDouyuScriptParam(rid, script);
+			stream = await apiGetDouyuStream(rid, param, qnName, streamType);
 		} else if (url.includes("bilibili.com")) {
-			fetcher.submit({url, rid, qn: qnName, type: streamType}, {action: "/api/real_bilibili", method: "post"});
+			stream = await apiGetBilibiliStream(rid, qnName, streamType);
 		} else if (url.includes("huya.com")) {
-			fetcher.submit({url, rid, qn: qnName}, {action: "/api/real_huya", method: "post"});
+			stream = await apiGetHuyaStream(rid);
 		} else {
-			let id = String(new Date().getTime());
+			stream = url;
+		}
+		if (!stream || stream == "" || stream.length < 10) {
+			Toast.fail("获取直播流失败，可能没有对应的清晰度或未开播");
+		} else {
 			setVideoList((list) => [...list, {
 				id,
 				order: list.length - 1,
-				url: url,
-				rid: url,
-				stream: url
-			}]);
-			setVideoOrderList(list => [...list, {id, url, qnName}]);
-			setIsAddVideoLoading(false);
+				url,
+				rid,
+				stream
+			}])
 		}
+		setVideoOrderList(list => [...list, {id, url, qnName}]);
+		setIsAddVideoLoading(false);
 	}
 
-	const addDanmaku = (url: string) => {
+	const addDanmaku = async (url: string) => {
 		if (url === "" || !url) return;
-		if (!url.includes("douyu.com")) return;
 		setIsConnectDanmakuLoading(true);
 		let rid = getLastField(url);
 		if (!isRid(rid)) {
@@ -264,30 +239,30 @@ const Index = () => {
 				rid = queryObj.rid;
 			}
 		}
-		fetcherRid.submit({rid, url}, {action: "/api/real_douyu_rid", method: "post"});
+		let id = String(new Date().getTime());
+		let ws: any = null;
+		if (url.includes("douyu.com")) {
+			let realRid = await apiGetDouyuRealRid(rid);
+			ws = new DouyuDanmu(realRid, (msg: string) => {
+				msgHandler_Douyu(msg);
+			}, () => {
+				closeWs_Douyu(ws);
+			});
+		} else if (url.includes("bilibili.com")) {
+			
+		}
+			
+		
+		setDanmakuList(list => [...list, {id ,url, ws}]);
+		setIsConnectDanmakuLoading(false);
 	}
 
-	useEffect(() => {
-		const data = fetcherRid.data;
-		if (!data) return;
-		if ("type" in data && data.type === "douyu_rid") {
-			let ws = new DouyuDanmu(data.rid, (msg: string) => {
-				msgHandler(msg);
-			}, () => {
-				closeWs(ws);
-			});
-			setDanmakuList(list => [...list, {id: String(new Date().getTime()),url: data.url, ws}]);
-		}
-		setIsConnectDanmakuLoading(false);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [fetcherRid.data])
-
-	const closeWs = (ws: any) => {
+	const closeWs_Douyu = (ws: any) => {
 		ws?.close();
 		ws = null;
 	}
 
-	const msgHandler = (msg: string) => {
+	const msgHandler_Douyu = (msg: string) => {
 		let msgType = getStrMiddle(msg, "type@=", "/");
 		if (msgType === "chatmsg") {
 			let data: any = deserialize(msg);
@@ -409,11 +384,11 @@ const Index = () => {
 						</Field>
 						<Field disabled={showType==="overlap"} type="digit" label="一行几个" value={String(lineCount)} onChange={(v) => setLineCount(Number(v))}></Field>
 						<Field value={videoUrl} center clearable label="添加视频" placeholder="斗鱼/B站/虎牙直播间或任意平台直播流地址" button={
-							<Button loading={isAddVideoLoading} size="small" type="primary" onClick={() => {addVideo(videoUrl, qnName)}}>添加</Button>
+							<Button loading={isAddVideoLoading} size="small" type="primary" onClick={() => {addVideo(videoUrl, qnName, streamType)}}>添加</Button>
 						} onChange={setVideoUrl}>
 						</Field>
 						<Field label="画质">
-							<Radio.Group value={qnName} direction="horizontal" onChange={(v) => {setQnName(v as string)}}>
+							<Radio.Group value={qnName} direction="horizontal" onChange={(v) => {setQnName(v as IQnType)}}>
 								<Radio name="原画">原画</Radio>
 								<Radio name="蓝光">蓝光</Radio>
 								<Radio name="超清">超清</Radio>
@@ -473,7 +448,7 @@ const Index = () => {
 													title: "提示",
 													message: "确认断开连接？"
 												}).then(() => {
-													closeWs(item.ws);
+													closeWs_Douyu(item.ws);
 													setDanmakuList(list => {
 														return list.filter(prelist => prelist.id !== item.id);
 													})

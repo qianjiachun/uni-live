@@ -1,4 +1,6 @@
-export const QN_DOUYU: any = {
+import { eval1 } from "~/utils";
+
+const QN_DOUYU = {
   原画: "0",
   蓝光: "4000p",
   超清: "2000p",
@@ -30,7 +32,7 @@ export function getRealLive_DouyuScript(rid: string): Promise<string> {
 
 export function getRealLive_Douyu(
   data: string,
-  qn: string,
+  qn: IQnType,
   type: IStreamType
 ): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -82,4 +84,16 @@ export function getRealLive_Douyu(
         reject(err);
       });
   });
+}
+
+
+export function getDouyuScriptParam(rid: string, script: string): string {
+  eval1(script, "exScript1");
+  let tt = Math.round(new Date().getTime()/1000).toString();
+  let param = window.ub98484234(rid, "10000000000000000000000000001501", tt);
+  let scriptDom = document.getElementById("exScript1");
+  if (scriptDom) {
+    scriptDom.remove();
+  }
+  return param;;
 }

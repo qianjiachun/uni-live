@@ -47,3 +47,10 @@ interface IDanmaku {
 type IShowType = "overlap" | "line" | "grid";
 
 type IStreamType = "hls" | "flv";
+
+type IQnType = "原画" | "蓝光" | "超清" | "高清" | "流畅";
+
+interface IDouyuScript {
+    rid: string;
+    script: string;
+}
