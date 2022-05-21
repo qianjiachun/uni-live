@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Cross, GuideO, Setting } from "@react-vant/icons";
+import { ArrowDown, ArrowUp, ClosedEye, Cross, EyeO, GuideO, Setting } from "@react-vant/icons";
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import copy from "copy-to-clipboard";
@@ -71,6 +71,8 @@ const Index = () => {
 
 	// 弹幕不透明度 0 - 100
 	const [danmakuOpacity, setDanmakuOpacity] = useState<number>(90);
+	// 不可见的视频
+	const [videoInvisibleList, setVideoInvisibleList] = useState<string[]>([]);
 
 	const loadVideoList = async (list: any) => {
 		let count = 0;
@@ -328,7 +330,12 @@ const Index = () => {
 	}
 
 	const getLastVideoId = () => {
-		return videoOrderListRef.current[videoOrderListRef.current.length - 1]?.id;
+		for (let i = videoOrderListRef.current.length - 1; i >= 0; i--) {
+			let item = videoOrderListRef.current[i];
+			if (!videoInvisibleList.includes(item.id)) {
+				return item?.id;
+			}
+		}
 	}
 	const getVideoStreamById = (id: string): string => {
 		for (let i = 0; i < videoList.length; i++) {
@@ -340,7 +347,6 @@ const Index = () => {
 		return "";
 	}
 
-	
 	return (
 		<div className="w-full h-full bg-black">
 			<div id="danmaku" className="w-full h-full absolute"></div>
@@ -355,7 +361,7 @@ const Index = () => {
 							<div style={{
 								flex: `${lineCount ? "0 0 " + String(100/lineCount) + "%" : ""}`,
 								position: `${showType === "overlap" ? "absolute" : "inherit"}`,
-								display: `${showType === "overlap" ? item.id === getLastVideoId() ? "block" : "none" : "block"}`,
+								display: `${videoInvisibleList.includes(item.id) ? "none" : showType === "overlap" ? item.id === getLastVideoId() ? "block" : "none" : "block"}`,
 							}} key={item.id} className={clsx([showType === "overlap" && "overlap", showType === "line" && "line-item ", "w-full h-full"])}>
 								<VideoItem style={{
 									height: "100%",
@@ -423,6 +429,16 @@ const Index = () => {
 								return (
 									<Cell key={item.id} title={`${item.url} ${item.qnName}`}>
 										<div className="flex justify-end h-full items-center">
+											{
+												!videoInvisibleList.includes(item.id) ?
+												<EyeO className="ml-2 cursor-pointer text-xl" onClick={() =>{
+													setVideoInvisibleList(list => [...list, item.id])
+												}}/> 
+												:
+												<ClosedEye className="ml-2 cursor-pointer text-xl" onClick={() => {
+													setVideoInvisibleList(list => list.filter(id => id !== item.id))
+												}}/>
+											}
 											<GuideO className="ml-2 cursor-pointer text-xl" onClick={() => {
 												copy(getVideoStreamById(item.id));
 												Toast.success("成功复制直播流地址");
