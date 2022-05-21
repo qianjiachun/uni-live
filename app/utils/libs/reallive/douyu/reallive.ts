@@ -1,3 +1,4 @@
+import axios from "axios";
 import { eval1 } from "~/utils";
 
 const QN_DOUYU = {
@@ -9,16 +10,11 @@ const QN_DOUYU = {
 };
 export function getRealLive_DouyuScript(rid: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch("https://m.douyu.com/" + rid, {
-      method: "GET",
-      credentials: "include",
+    axios.get("https://m.douyu.com/" + rid, {
     })
-      .then((res) => {
-        return res.text();
-      })
       .then((ret) => {
         let ub9 = "";
-        let a = ret.match(/(function ub9.*)[\s\S](var.*)/i);
+        let a = ret.data.match(/(function ub9.*)[\s\S](var.*)/i);
         if (a) {
           ub9 = a[0];
         }
@@ -36,17 +32,13 @@ export function getRealLive_Douyu(
   type: IStreamType
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch("https://m.douyu.com/api/room/ratestream", {
-      method: "POST",
-      body: data,
+    axios.post("https://m.douyu.com/api/room/ratestream", data, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     })
       .then((res) => {
-        return res.json();
-      })
-      .then((ret) => {
+        let ret = res.data;
         let result = "";
         if (ret.code == "0") {
           let url = ret.data.url;

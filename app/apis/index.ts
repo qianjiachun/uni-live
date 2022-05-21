@@ -1,17 +1,12 @@
+import axios from "axios";
+
 export function apiGetDouyuRealRid(rid: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch(`/api/rid/douyu`, {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
-        rid,
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
+    axios.post(`/api/rid/douyu`, JSON.stringify({
+      rid,
+    }))
       .then((ret) => {
-        resolve(ret.rid);
+        resolve(ret.data.rid);
       })
       .catch((err) => {
         reject(err);
@@ -21,20 +16,13 @@ export function apiGetDouyuRealRid(rid: string): Promise<string> {
 
 export function apiGetDouyuScript(rid: string): Promise<IDouyuScript> {
   return new Promise((resolve, reject) => {
-    fetch(`/api/stream/douyuScript`, {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
-        rid,
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
+    axios.post(`/api/stream/douyuScript`, JSON.stringify({
+      rid,
+    }))
       .then((ret) => {
         resolve({
-            script: ret.script,
-            rid: ret.rid,
+            script: ret.data.script,
+            rid: ret.data.rid,
         });
       })
       .catch((err) => {
@@ -50,21 +38,14 @@ export function apiGetDouyuStream(
   type: IStreamType
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch(`/api/stream/douyu`, {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
-        rid,
-        param,
-        qn: qn || "原画",
-        type: type || "flv",
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
+    axios.post(`/api/stream/douyu`, JSON.stringify({
+      rid,
+      param,
+      qn: qn || "原画",
+      type: type || "flv",
+    }))
       .then((ret) => {
-        resolve(ret.stream);
+        resolve(ret.data.stream);
       })
       .catch((err) => {
         reject(err);
@@ -74,18 +55,11 @@ export function apiGetDouyuStream(
 
 export function apiGetHuyaStream(rid: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch(`/api/stream/huya`, {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
-        rid,
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
+    axios.post(`/api/stream/huya`, JSON.stringify({
+      rid,
+    }))
       .then((ret) => {
-        resolve(ret.stream);
+        resolve(ret.data.stream);
       })
       .catch((err) => {
         reject(err);
@@ -95,20 +69,41 @@ export function apiGetHuyaStream(rid: string): Promise<string> {
 
 export function apiGetBilibiliStream(rid: string, qn: IQnType, type: IStreamType): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch(`/api/stream/bilibili`, {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
-        rid,
-        type: type || "flv",
-        qn: qn || "原画",
-      }),
-    })
-      .then((res) => {
-        return res.json();
-      })
+    axios.post(`/api/stream/bilibili`, JSON.stringify({
+      rid,
+      type: type || "flv",
+      qn: qn || "原画",
+    }))
       .then((ret) => {
-        resolve(ret.stream);
+        resolve(ret.data.stream);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export function apiGetBilibiliRealRid(rid: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    axios.post(`/api/rid/bilibili`, JSON.stringify({
+      rid,
+    }))
+      .then((ret) => {
+        resolve(ret.data.rid);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+export function apiGetHuyaChannelInfo(rid: string): Promise<IHuyaChannelInfo> {
+  return new Promise((resolve, reject) => {
+    axios.post(`/api/rid/huyaChannelInfo`, JSON.stringify({
+      rid,
+    }))
+      .then((ret) => {
+        resolve(ret.data);
       })
       .catch((err) => {
         reject(err);

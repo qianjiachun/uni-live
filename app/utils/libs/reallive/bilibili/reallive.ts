@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const QN_BILIBILI = {
 	"原画": "10000",
 	"蓝光": "400",
@@ -12,17 +14,11 @@ export function getRealLive_Bilibili(
   type: IStreamType
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    fetch(
+    axios.get(
       `https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=${room_id}&protocol=0,1&format=0,1,2&codec=0,1&qn=${QN_BILIBILI[qn]}&platform=h5&ptype=8`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
     )
       .then((res) => {
-        return res.json();
-      })
-      .then((ret) => {
+        let ret = res.data;
         let rurl = "";
         let streamList = ret.data?.playurl_info?.playurl?.stream;
         if (streamList) {

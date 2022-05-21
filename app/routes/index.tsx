@@ -12,8 +12,10 @@ import RGL, { WidthProvider } from "react-grid-layout"
 import clsx from "clsx";
 import useLatest from "~/hooks/useLatest";
 import { deserialize, DouyuDanmu } from "douyu-danmu-ws";
-import { apiGetBilibiliStream, apiGetDouyuRealRid, apiGetDouyuScript, apiGetDouyuStream, apiGetHuyaStream } from "~/apis";
+import { apiGetBilibiliRealRid, apiGetBilibiliStream, apiGetDouyuRealRid, apiGetDouyuScript, apiGetDouyuStream, apiGetHuyaChannelInfo, apiGetHuyaStream } from "~/apis";
 import { getDouyuScriptParam } from "~/utils/libs/reallive/douyu/reallive";
+import { LiveWS } from "bilibili-live-ws/browser"
+import { initHuyaDanmaku } from "~/utils/libs/danmaku/huya"
 const ReactGridLayout = WidthProvider(RGL);
 
 
@@ -137,6 +139,7 @@ const Index = () => {
 		if (osName.includes("ios") || osName.includes("mac")) {
 			setStreamType("hls");
 		}
+		initHuyaDanmaku();
 		injectStyle("Global", `
 		.bullet-item {z-index: 40 !important;}
 		.bullet-item-text {font-size:1.5rem !important; font-weight: bold !important;}
@@ -249,9 +252,15 @@ const Index = () => {
 				closeWs_Douyu(ws);
 			});
 		} else if (url.includes("bilibili.com")) {
-			
+			let realRid = await apiGetBilibiliRealRid(rid);
+			ws = new LiveWS(Number(realRid));
+			ws.on("DANMU_MSG", (data: any) => {
+				msgHandler_Bilibili(data.info);
+			});
+		} else if (url.includes("huya.com")) {
+			let {channelId, subChannelId} = await apiGetHuyaChannelInfo(rid);
+			ws = window.HuYaListener(channelId, subChannelId, msgHandler_Huya);
 		}
-			
 		
 		setDanmakuList(list => [...list, {id ,url, ws}]);
 		setIsConnectDanmakuLoading(false);
@@ -266,10 +275,23 @@ const Index = () => {
 		let msgType = getStrMiddle(msg, "type@=", "/");
 		if (msgType === "chatmsg") {
 			let data: any = deserialize(msg);
+			if (!data.dms) return;
 			danmakuRef.current?.emit(data.txt, {
 				color: danmakuColor[data.col]
 			});
 		}
+	}
+
+	const msgHandler_Bilibili = (msg: any) => {
+		danmakuRef.current?.emit(msg[1], {
+			color: `#${msg[0][3].toString(16)}`
+		});
+	}
+
+	const msgHandler_Huya = (msg: any) => {
+		danmakuRef.current?.emit(msg.sContent, {
+			color: msg.tBulletFormat.iFontColor > 0 ? `#${msg.tBulletFormat.iFontColor.toString(16)}` : "#ffffff"	
+		});
 	}
 
 	useEffect(() => {
@@ -433,7 +455,7 @@ const Index = () => {
 								setDanmakuOpacity(v);
 							}}/>
 						</Field>
-						<Field value={danmakuUrl} center clearable label="直播间" placeholder="仅斗鱼,支持无限个直播间弹幕同时展示" button={
+						<Field value={danmakuUrl} center clearable label="直播间" placeholder="支持斗鱼/虎牙/B站无限个直播间" button={
 							<Button loading={isConnectDanmakuLoading} size="small" type="primary" onClick={() => {addDanmaku(danmakuUrl)}}>
 								添加
 							</Button>
