@@ -29,9 +29,13 @@ export const loader: LoaderFunction = ({request}) => {
 	const url = new URL(request.url);
 	const video = url.searchParams.get("video");
 	const danmaku = url.searchParams.get("danmaku");
+	const showType = url.searchParams.get("showType");
+	const lineCount = url.searchParams.get("lineCount");
 	return {
 		shareVideoList: video,
-		shareDanmakuList: danmaku
+		shareDanmakuList: danmaku,
+		shareShowType: showType,
+		shareLineCount: lineCount
 	}
 }
 
@@ -46,7 +50,7 @@ const danmakuColor: any = {
 
 const Index = () => {
 	const [streamType, setStreamType] = useState<IStreamType>("flv");
-	const {shareVideoList, shareDanmakuList} = useLoaderData();
+	const {shareVideoList, shareDanmakuList, shareShowType, shareLineCount} = useLoaderData();
 	const [isShowSetting, setIsShowSetting] = useState<boolean>(false);
 	// overlap重叠 line并列
 	const [showType, setShowType] = useState<IShowType>("overlap");
@@ -160,6 +164,22 @@ const Index = () => {
 		} else {
 			loadLocalDanmakuList();
 		}
+		if (shareShowType) {
+			setShowType(shareShowType);
+		} else {
+			let local_showType = localStorage.getItem("showType");
+			if (local_showType) {
+				setShowType(local_showType as IShowType);
+			}
+		}
+		if (shareLineCount) {
+			setLineCount(Number(shareLineCount));
+		} else {
+			let local_lineCount = localStorage.getItem("lineCount");
+			if (local_lineCount) {
+				setLineCount(Number(local_lineCount));
+			}
+		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
@@ -193,6 +213,14 @@ const Index = () => {
 	useEffect(() => {
 		localStorage.setItem("danmakuList", JSON.stringify(getLocalDanmakuList(danmakuList)));
 	}, [danmakuList])
+
+	useEffect(() => {
+		localStorage.setItem("showType", showType);
+	}, [showType])
+
+	useEffect(() => {
+		localStorage.setItem("lineCount", String(lineCount));
+	}, [lineCount])
 
 
 	const addVideo = async (url: string, qnName: IQnType, streamType: IStreamType) => {
@@ -320,6 +348,8 @@ const Index = () => {
 		url += url.includes("?") ? "&video=" : "?video=";
 		url += window.btoa(encodeURIComponent(JSON.stringify(getLocalVideoList(videoOrderList))));
 		url += "&danmaku=" + window.btoa(encodeURIComponent(JSON.stringify(getLocalDanmakuList(danmakuList))));
+		url += "&showType=" + showType;
+		url += "&lineCount=" + String(lineCount);
 		Dialog.confirm({
 			title: '是否复制分享链接',
 			message: '保存当前的视频列表，再次访问会自动添加',
