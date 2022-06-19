@@ -9,6 +9,7 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 import styles from "./tailwind.css";
+import { useEffect } from "react";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -20,7 +21,17 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
 ];
 
+const baidu = async () => {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?08e7914364d68dc91825b4cc6d5cd3c9";
+  var s: any = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+}
+
 export default function App() {
+  useEffect(() => {
+    baidu();
+  }, [])
   return (
     <html lang="zh">
       <head>
