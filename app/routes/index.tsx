@@ -306,20 +306,20 @@ const Index = () => {
 		if (msgType === "chatmsg") {
 			let data: any = deserialize(msg);
 			if (!data.dms) return;
-			danmakuRef.current?.emit(data.txt, {
+			danmakuRef.current?.push(data.txt, {
 				color: danmakuColor[data.col]
 			});
 		}
 	}
 
 	const msgHandler_Bilibili = (msg: any) => {
-		danmakuRef.current?.emit(msg[1], {
+		danmakuRef.current?.push(msg[1], {
 			color: `#${msg[0][3].toString(16)}`
 		});
 	}
 
 	const msgHandler_Huya = (msg: any) => {
-		danmakuRef.current?.emit(msg.sContent, {
+		danmakuRef.current?.push(msg.sContent, {
 			color: msg.tBulletFormat.iFontColor > 0 ? `#${msg.tBulletFormat.iFontColor.toString(16)}` : "#ffffff"	
 		});
 	}
