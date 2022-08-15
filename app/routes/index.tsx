@@ -75,6 +75,7 @@ const Index = () => {
 
 	// 弹幕不透明度 0 - 100
 	const [danmakuOpacity, setDanmakuOpacity] = useState<number>(90);
+	const [danmakuDensity, setDanmakuDensity] = useState<number>(20);
 	// 不可见的视频
 	const [videoInvisibleList, setVideoInvisibleList] = useState<string[]>([]);
 
@@ -499,6 +500,14 @@ const Index = () => {
 									danmakuRef.current.opacity = v / 100;
 								}
 								setDanmakuOpacity(v);
+							}}/>
+						</Field>
+						<Field label="弹幕密度">
+							<Slider value={danmakuDensity} min={0} max={300} onChange={(v: number) => {
+								if (danmakuRef.current) {
+									danmakuRef.current.minGapWidth = v;
+								}
+								setDanmakuDensity(v);
 							}}/>
 						</Field>
 						<Field value={danmakuUrl} center clearable label="直播间" placeholder="支持斗鱼/虎牙/B站无限个直播间" button={
