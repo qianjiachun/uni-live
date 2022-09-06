@@ -458,25 +458,33 @@ const Index = () => {
 						<div>
 							{videoOrderList.map((item, index) => {
 								return (
-									<Cell key={item.id} title={`${item.url} ${item.qnName}`}>
+									<Cell key={item.id} title={`${item.url} ${item.qnName}`} onClick={(e) => {
+										e.stopPropagation();
+										copy(item.url);
+										Toast.success("成功复制");
+									}}>
 										<div className="flex justify-end h-full items-center">
 											{
 												!videoInvisibleList.includes(item.id) ?
-												<EyeO className="ml-2 cursor-pointer text-xl" onClick={() =>{
+												<EyeO className="ml-2 cursor-pointer text-xl" onClick={(e) =>{
+													e.stopPropagation();
 													setVideoInvisibleList(list => [...list, item.id])
 												}}/> 
 												:
-												<ClosedEye className="ml-2 cursor-pointer text-xl" onClick={() => {
+												<ClosedEye className="ml-2 cursor-pointer text-xl" onClick={(e) => {
+													e.stopPropagation();
 													setVideoInvisibleList(list => list.filter(id => id !== item.id))
 												}}/>
 											}
-											<GuideO className="ml-2 cursor-pointer text-xl" onClick={() => {
+											<GuideO className="ml-2 cursor-pointer text-xl" onClick={(e) => {
+												e.stopPropagation();
 												copy(getVideoStreamById(item.id));
 												Toast.success("成功复制直播流地址");
 											}} />
-											<ArrowUp style={{display: `${index === 0 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={() => {setVideoOrderList(list => arrayMoveUp(deepCopyArray(list), index))}} />
-											<ArrowDown style={{display: `${index === videoOrderList.length - 1 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={() => {setVideoOrderList(list => arrayMoveDown(deepCopyArray(list), index))}} />
-											<Cross className="ml-2 cursor-pointer text-xl" onClick={() => {
+											<ArrowUp style={{display: `${index === 0 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={(e) => {e.stopPropagation();setVideoOrderList(list => arrayMoveUp(deepCopyArray(list), index))}} />
+											<ArrowDown style={{display: `${index === videoOrderList.length - 1 ? "none" : "block"}`}} className="ml-2 cursor-pointer text-xl" onClick={(e) => {e.stopPropagation();setVideoOrderList(list => arrayMoveDown(deepCopyArray(list), index))}} />
+											<Cross className="ml-2 cursor-pointer text-xl" onClick={(e) => {
+												e.stopPropagation();
 												Dialog.confirm({
 													title: "提示",
 													message: "确认删除视频？"
