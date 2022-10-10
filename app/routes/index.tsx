@@ -245,6 +245,7 @@ const Index = () => {
 			stream = await apiGetBilibiliStream(rid, qnName, streamType);
 		} else if (url.includes("huya.com")) {
 			stream = await apiGetHuyaStream(rid);
+			console.log("哈哈", stream)
 		} else {
 			stream = url;
 		}
