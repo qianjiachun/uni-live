@@ -75,6 +75,7 @@ export function apiGetBilibiliStream(rid: string, qn: IQnType, type: IStreamType
       qn: qn || "原画",
     }))
       .then((ret) => {
+        console.log(ret);
         resolve(ret.data.stream);
       })
       .catch((err) => {
