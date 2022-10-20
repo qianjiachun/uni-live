@@ -458,7 +458,7 @@ const Index = () => {
 						<div>
 							{videoOrderList.map((item, index) => {
 								return (
-									<Cell key={item.id} title={`${item.url} ${item.qnName}`} onClick={(e) => {
+									<Cell className="overflow-hidden" key={item.id} title={`${item.url} ${item.qnName}`} onClick={(e) => {
 										e.stopPropagation();
 										copy(item.url);
 										Toast.success("成功复制");
@@ -526,7 +526,7 @@ const Index = () => {
 						<div>
 							{danmakuList.map(item => {
 								return (
-									<Cell key={item.id} title={item.url}>
+									<Cell className="overflow-hidden" key={item.id} title={item.url}>
 										<div className="flex justify-end h-full items-center">
 											<Cross className="ml-2 cursor-pointer text-xl" onClick={() => {
 												Dialog.confirm({
