@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const QN_BILIBILI = {
-	"原画": "20000",
-	"蓝光": "400",
-	"超清": "250",
-	"高清": "150",
-	"流畅": "80"
+  原画: "20000",
+  蓝光: "400",
+  超清: "250",
+  高清: "150",
+  流畅: "80"
 };
 
 // export function getRealLive_Bilibili(
@@ -35,18 +35,21 @@ const QN_BILIBILI = {
 //   });
 // }
 
-export function getRealLive_Bilibili(
-  room_id: string,
-  qn: IQnType,
-  type: IStreamType
-): Promise<string> {
+export function getRealLive_Bilibili(room_id: string, qn: IQnType, type: IStreamType): Promise<string> {
   return new Promise((resolve, reject) => {
-    axios.get(
-      "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + room_id + "&qn=" + QN_BILIBILI[qn] + "&platform=web",
-    )
+    axios
+      .get(`https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=${room_id}&platform=web&qn=${QN_BILIBILI[qn]}&protocol=0,1&format=0,1,2&codec=0,1`)
       .then((res) => {
         let ret = res.data;
         let rurl = "";
+        for (let i = 0; i < ret.data.playurl_info.playurl.stream.length; i++) {
+          const item = ret.data.playurl_info.playurl.stream[i];
+          if (String(item.protocol_name).includes("hls") && item.format.length > 0) {
+            let url_info = item.format[0].codec[0].url_info[0];
+            let base_url = item.format[0].codec[0].base_url;
+            rurl = `${url_info.host}${base_url}${url_info.extra}`;
+          }
+        }
         let streamList = ret.data?.durl;
         if (streamList) {
           rurl = streamList.length > 0 ? streamList[0].url : "";
