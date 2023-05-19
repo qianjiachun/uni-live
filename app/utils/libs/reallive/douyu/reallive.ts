@@ -61,13 +61,13 @@ export function getRealLive_Douyu(
           realLive = "";
         } else {
           if (cl === "0") {
-            realLive = `https://hdltctwk.douyucdn2.cn/live/${result}.m3u8?uuid=`;
+            realLive = `https://openhls-tct.douyucdn2.cn/dyliveflv1/${result}.m3u8?uuid=`;
           } else {
-            realLive = `https://hdltctwk.douyucdn2.cn/live/${result}_${cl}.m3u8?uuid=`;
+            realLive = `https://openhls-tct.douyucdn2.cn/dyliveflv1/${result}_${cl}.m3u8?uuid=`;
           }
           if (type === "flv") {
             // realLive = String(ret.data.url).replace("m3u8", "flv");
-			realLive = String(realLive).replace("m3u8", "flv");
+			      realLive = String(realLive).replace("m3u8", "flv");
           }
         }
         resolve(realLive);
