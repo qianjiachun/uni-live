@@ -60,15 +60,17 @@ export function getRealLive_Douyu(
         if (result == "0") {
           realLive = "";
         } else {
-          if (cl === "0") {
-            realLive = `https://openhls-tct.douyucdn2.cn/dyliveflv1/${result}.m3u8?uuid=`;
-          } else {
-            realLive = `https://openhls-tct.douyucdn2.cn/dyliveflv1/${result}_${cl}.m3u8?uuid=`;
-          }
-          if (type === "flv") {
-            // realLive = String(ret.data.url).replace("m3u8", "flv");
-			      realLive = String(realLive).replace("m3u8", "flv");
-          }
+          realLive = String(ret.data.url).replace("m3u8", "flv");
+          realLive = realLive.replace("http:", "https:");
+          // if (cl === "0") {
+          //   realLive = `https://openhls-tct.douyucdn2.cn/dyliveflv1/${result}.m3u8?uuid=`;
+          // } else {
+          //   realLive = `https://openhls-tct.douyucdn2.cn/dyliveflv1/${result}_${cl}.m3u8?uuid=`;
+          // }
+          // if (type === "flv") {
+          //   // realLive = String(ret.data.url).replace("m3u8", "flv");
+			    //   realLive = String(realLive).replace("m3u8", "flv");
+          // }
         }
         resolve(realLive);
       })
