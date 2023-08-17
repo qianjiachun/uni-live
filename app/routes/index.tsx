@@ -458,7 +458,7 @@ const Index = () => {
 						<div>
 							{videoOrderList.map((item, index) => {
 								return (
-									<Cell className="overflow-hidden" key={item.id} title={`${item.url} ${item.qnName}`} onClick={(e) => {
+									<Cell className="overflow-hidden" titleStyle={{overflow: "hidden"}} key={item.id} title={`${item.url} ${item.qnName}`} onClick={(e) => {
 										e.stopPropagation();
 										copy(item.url);
 										Toast.success("成功复制");
