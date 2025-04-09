@@ -230,23 +230,27 @@ const Index = () => {
 		let rid = getLastField(url);
 		let id = String(new Date().getTime());
 		let stream = "";
-		if (url.includes("douyu.com")) {
-			if (!isRid(rid)) {
-				let queryObj = parseUrlParams(url);
-				if (queryObj.rid) {
-					rid = queryObj.rid;
-				}
-			}
-			let { rid: realRid, script } = await apiGetDouyuScript(rid);
-			rid = realRid;
-			let param = getDouyuScriptParam(rid, script);
-			stream = await apiGetDouyuStream(rid, param, qnName, streamType);
-		} else if (url.includes("bilibili.com")) {
-			stream = await apiGetBilibiliStream(rid, qnName, streamType);
-		} else if (url.includes("huya.com")) {
-			stream = await apiGetHuyaStream(rid);
-		} else {
+		if (url.length > 150) {
 			stream = url;
+		} else {
+			if (url.includes("douyu.com")) {
+				if (!isRid(rid)) {
+					let queryObj = parseUrlParams(url);
+					if (queryObj.rid) {
+						rid = queryObj.rid;
+					}
+				}
+				let { rid: realRid, script } = await apiGetDouyuScript(rid);
+				rid = realRid;
+				let param = getDouyuScriptParam(rid, script);
+				stream = await apiGetDouyuStream(rid, param, qnName, streamType);
+			} else if (url.includes("bilibili.com")) {
+				stream = await apiGetBilibiliStream(rid, qnName, streamType);
+			} else if (url.includes("huya.com")) {
+				stream = await apiGetHuyaStream(rid);
+			} else {
+				stream = url;
+			}
 		}
 		if (!stream || stream == "" || stream.length < 10) {
 			Toast.fail("获取直播流失败，可能没有对应的清晰度或未开播");
