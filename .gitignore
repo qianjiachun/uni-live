@@ -1,6 +1,9 @@
 node_modules
-
-/.cache
+/.next
+/out
 /build
+/.cache
 /public/build
 .env
+.env*.local
+.cursor

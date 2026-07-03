@@ -1,0 +1,11 @@
+services:
+  uni-live:
+    build: .
+    container_name: douyuex-live
+    restart: unless-stopped
+    ports:
+      - "7002:7002"
+    environment:
+      NODE_ENV: production
+      PORT: 7002
+      HOSTNAME: 0.0.0.0
