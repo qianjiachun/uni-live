@@ -28,7 +28,7 @@ import {
 } from "@/features/free-layout/layout-utils";
 import {
   DanmakuLayer,
-  danmakuColor,
+  getDouyuDanmakuColor,
   type DanmakuLayerHandle,
 } from "@/features/danmaku/DanmakuLayer";
 import {
@@ -87,6 +87,7 @@ export function LiveRoomClient({
   const videoOrderListRef = useLatest(videoOrderList);
   const danmakuListRef = useLatest(danmakuList);
   const refreshLocks = useRef<Set<string>>(new Set());
+  const isAppReadyRef = useRef(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("dockVisible");
@@ -271,7 +272,7 @@ export function LiveRoomClient({
         const queryObj = parseUrlParams(url);
         if (queryObj.rid) rid = queryObj.rid;
       }
-      const id = String(Date.now());
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       let ws: IDanmaku["ws"] = null;
 
       try {
@@ -282,10 +283,13 @@ export function LiveRoomClient({
             (msg: string) => {
               const msgType = getStrMiddle(msg, "type@=", "/");
               if (msgType === "chatmsg") {
-                const data = deserialize(msg) as { txt?: string; col?: string };
+                const data = deserialize(msg) as {
+                  txt?: string;
+                  col?: string | number;
+                };
                 if (data.txt) {
                   danmakuRef.current?.push(data.txt, {
-                    color: danmakuColor[data.col ?? "1"],
+                    color: getDouyuDanmakuColor(data.col),
                   });
                 }
               }
@@ -359,8 +363,35 @@ export function LiveRoomClient({
         await loadDanmakuList(parseShareDanmakuList(shareDanmaku));
       } else {
         const local = localStorage.getItem("danmakuList");
-        if (local) await loadDanmakuList(JSON.parse(local));
+        if (local) {
+          try {
+            const parsed = JSON.parse(local) as { url: string }[];
+            if (parsed.length > 0) {
+              await loadDanmakuList(parsed);
+            }
+          } catch {
+            // ignore invalid localStorage
+          }
+        }
       }
+
+      isAppReadyRef.current = true;
+
+      localStorage.setItem(
+        "danmakuList",
+        JSON.stringify(danmakuListRef.current.map(({ url }) => ({ url })))
+      );
+      localStorage.setItem(
+        "videoOrderList",
+        JSON.stringify(
+          videoOrderListRef.current.map(({ id, url, qnName, layout }) => ({
+            id,
+            url,
+            qnName,
+            layout,
+          }))
+        )
+      );
     };
     void init();
   }, [
@@ -374,6 +405,7 @@ export function LiveRoomClient({
   ]);
 
   useEffect(() => {
+    if (!isAppReadyRef.current) return;
     localStorage.setItem(
       "videoOrderList",
       JSON.stringify(
@@ -388,6 +420,7 @@ export function LiveRoomClient({
   }, [videoOrderList]);
 
   useEffect(() => {
+    if (!isAppReadyRef.current) return;
     localStorage.setItem(
       "danmakuList",
       JSON.stringify(danmakuList.map(({ url }) => ({ url })))
@@ -395,10 +428,12 @@ export function LiveRoomClient({
   }, [danmakuList]);
 
   useEffect(() => {
+    if (!isAppReadyRef.current) return;
     localStorage.setItem("layoutMode", layoutMode);
   }, [layoutMode]);
 
   useEffect(() => {
+    if (!isAppReadyRef.current) return;
     localStorage.setItem("lineCount", String(lineCount));
   }, [lineCount]);
 

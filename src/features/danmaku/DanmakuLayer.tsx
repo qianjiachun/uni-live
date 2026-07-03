@@ -16,6 +16,18 @@ export const danmakuColor: Record<string, string> = {
   "6": "rgb(255,105,180)",
 };
 
+const DEFAULT_DANMAKU_COLOR = "#ffffff";
+
+/** 斗鱼弹幕：按 col 等级取色，无匹配则为白色 */
+export function getDouyuDanmakuColor(
+  col: string | number | undefined | null
+): string {
+  if (col === undefined || col === null || col === "") {
+    return DEFAULT_DANMAKU_COLOR;
+  }
+  return danmakuColor[String(col)] ?? DEFAULT_DANMAKU_COLOR;
+}
+
 export interface DanmakuLayerHandle {
   push: (text: string, opts?: DanmakuPushOptions) => void;
 }
