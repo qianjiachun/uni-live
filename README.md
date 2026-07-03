@@ -1,73 +1,52 @@
 ## DouyuEx联播
 
 ### 网站
-[http://live.douyuex.com](http://live.douyuex.com)
+1. [http://live.douyuex.com](http://live.douyuex.com)
 
 ### 功能
 1. 支持无限个平台直播画面/声音同时播放
-2. 支持斗鱼/虎牙/B站无限个直播间弹幕同时飘屏
-3. 支持斗鱼/虎牙/B站直播流解析，其他任意平台需直接输入直播流
-4. **自由布局**：每个视频可拖动位置、调整大小，布局自动保存
-5. **单视频刷新**：每个视频卡片可重新获取直播流
-6. 三种布局模式：重叠模式、均分模式、自由布局
-7. 支持分享链接，保存视频列表、弹幕和布局配置
-8. 设置支持本地保存
+2. 支持斗鱼/虎牙/b站无限个直播间弹幕同时飘屏
+3. 支持斗鱼/虎牙/b站直播流解析，其他任意平台需直接输入直播流
+- 其他任意平台的直播流解析可使用这个库[real-url](https://github.com/wbt5/real-url)
+4. 观看模式可切换成并列（对比）和重叠（声音+画面），可自由调整显示顺序
+5. 支持分享按钮，可将自己配置好的直播间分享出去，其他人点开链接即可观看
+6. 设置支持本地保存，下次打开不再需要输入直播间
 
-### 技术栈
-- Next.js 15 (App Router)
-- React 19 + TypeScript
-- Tailwind CSS
-- react-player（npm 包，替代 CDN 脚本）
+### 注意
+1. 视频默认静音（浏览器限制），记得打开
+2. 视频顺序越下，画面越靠前
+3. **IPhone设备，虎牙平台无法播放**
 
-### 开发
+### 声明
+1. 该项目只用了一天时间开发，能跑就行，代码质量请勿吐槽！后续是否迭代优化看心情
+2. 请勿用于商业用途，网站仅为方便大众观看
+3. 作者：小淳  邮箱：189964430@qq.com
 
-```bash
-npm install
-npm run dev
-```
+### Docker 部署（推荐）
 
-### 构建
+镜像内置 Node 20，不依赖宿主机 Node 版本（宝塔等全局 Node 16 环境可用）。
 
 ```bash
-npm run build
-npm start   # http://localhost:7002
-```
+git clone https://github.com/qianjiachun/uni-live.git
+cd uni-live
 
-### Docker 部署（推荐，不依赖宿主机 Node 版本）
-
-镜像内置 **Node 20**，适合宝塔等全局 Node 16 的环境。
-
-```bash
-# 构建并启动（端口 7002）
-docker compose up -d --build
-
-# 查看日志
-docker compose logs -f
-
-# 停止
-docker compose down
-```
-
-仅使用 Docker（不用 compose）：
-
-```bash
 docker build -t douyuex-live .
-docker run -d --name douyuex-live -p 7002:7002 --restart unless-stopped douyuex-live
+docker run -d --name douyuex-live --restart unless-stopped -p 7002:7002 douyuex-live
 ```
 
-宝塔面板：安装 **Docker 管理器** → 可导入 `docker-compose.yml`，或 SSH 进入项目目录执行 `docker compose up -d --build`。网站反代到 `http://127.0.0.1:7002` 即可。
+若已安装 docker-compose：
+
+```bash
+docker-compose up -d --build
+```
 
 更新部署：
 
 ```bash
 git pull
-docker compose up -d --build
+docker stop douyuex-live && docker rm douyuex-live
+docker build -t douyuex-live .
+docker run -d --name douyuex-live --restart unless-stopped -p 7002:7002 douyuex-live
 ```
 
-### 注意
-1. 视频默认静音（浏览器限制），请手动打开声音
-2. iPhone 仅支持 HLS 流；虎牙在 iOS 上可能无法播放
-3. 移动端自由布局自动降级为均分模式
-
-### 声明
-请勿用于商业用途，网站仅为方便大众观看。
+访问 `http://服务器IP:7002`；若用域名，在宝塔反代到 `http://127.0.0.1:7002` 即可。
