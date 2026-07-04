@@ -1,5 +1,6 @@
 import type { IQnType, IStreamType, Platform } from "@/types";
 import {
+  apiGetBilibiliRealRid,
   apiGetBilibiliStream,
   apiGetDouyuRealRid,
   apiGetDouyuStream,
@@ -28,9 +29,11 @@ export async function resolveStreamUrl(
 
   if (platform === "douyu") {
     const realRid = await apiGetDouyuRealRid(rid);
-    rid = realRid;
+    rid = String(realRid);
     stream = await apiGetDouyuStream(rid, qnName, streamType);
   } else if (platform === "bilibili") {
+    const realRid = await apiGetBilibiliRealRid(rid);
+    rid = String(realRid);
     stream = await apiGetBilibiliStream(rid, qnName, streamType);
   } else if (platform === "huya") {
     stream = await apiGetHuyaStream(rid);

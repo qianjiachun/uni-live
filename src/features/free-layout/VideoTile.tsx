@@ -15,7 +15,6 @@ import type { ResizeHandle } from "@/features/free-layout/layout-utils";
 
 interface VideoTileProps {
   video: IVideo;
-  style: React.CSSProperties;
   isActive: boolean;
   layoutMode: LayoutMode;
   onPointerDownDrag: (e: React.PointerEvent) => void;
@@ -39,7 +38,6 @@ const RESIZE_HANDLES: { handle: ResizeHandle; className: string }[] = [
 
 export function VideoTile({
   video,
-  style,
   isActive,
   layoutMode,
   onPointerDownDrag,
@@ -49,17 +47,11 @@ export function VideoTile({
   onRemove,
   onCopyStream,
 }: VideoTileProps) {
-  if (!video.layout.visible && layoutMode !== "overlap") {
-    return null;
-  }
-
   return (
     <div
-      style={style}
       className={clsx(
-        "group overflow-hidden rounded-lg border border-border/40 bg-surface shadow-lg transition-shadow",
-        isActive && "ring-2 ring-accent/70",
-        !video.layout.visible && layoutMode === "overlap" && "hidden"
+        "group relative h-full w-full overflow-hidden rounded-lg border border-border/40 bg-surface shadow-lg transition-shadow",
+        isActive && "ring-2 ring-accent/70"
       )}
     >
       <div
@@ -104,6 +96,14 @@ export function VideoTile({
       </div>
 
       <div className="relative h-full w-full">
+        {video.stream ? (
+          <PlayerAdapter
+            src={video.stream}
+            playbackKey={video.playbackKey}
+            onError={onRefresh}
+          />
+        ) : null}
+
         {video.status === "loading" || video.isRefreshing ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60">
             <div className="flex flex-col items-center gap-2">
@@ -126,14 +126,6 @@ export function VideoTile({
               重新获取
             </button>
           </div>
-        ) : null}
-
-        {video.stream ? (
-          <PlayerAdapter
-            src={video.stream}
-            playbackKey={video.playbackKey}
-            onError={onRefresh}
-          />
         ) : null}
       </div>
 

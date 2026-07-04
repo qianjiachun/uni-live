@@ -5,6 +5,7 @@ import { deserialize, DouyuDanmu } from "douyu-danmu-ws";
 import { LiveWS } from "bilibili-live-ws/browser";
 import { Plus } from "@phosphor-icons/react";
 import type {
+  DanmakuDisplayMode,
   IDanmaku,
   IQnType,
   IStreamType,
@@ -48,6 +49,7 @@ import {
 } from "@/lib/utils";
 import useLatest from "@/hooks/useLatest";
 import { initHuyaDanmaku } from "@/lib/danmaku/huya";
+import { resolveRoomKey } from "@/lib/room-key";
 import { ControlDock } from "@/components/live/ControlDock";
 import { SettingsPanel } from "@/components/live/SettingsPanel";
 
@@ -76,6 +78,8 @@ export function LiveRoomClient({
   const [danmakuOpacity, setDanmakuOpacity] = useState(90);
   const [danmakuDensity, setDanmakuDensity] = useState(20);
   const [danmakuSpeed, setDanmakuSpeed] = useState(120);
+  const [danmakuDisplayMode, setDanmakuDisplayMode] =
+    useState<DanmakuDisplayMode>("merged");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [isAddingDanmaku, setIsAddingDanmaku] = useState(false);
@@ -84,8 +88,13 @@ export function LiveRoomClient({
   const [isDockVisible, setIsDockVisible] = useState(false);
 
   const danmakuRef = useRef<DanmakuLayerHandle>(null);
+  const fallbackDanmakuRef = useRef<DanmakuLayerHandle>(null);
+  const videoDanmakuRefs = useRef<Map<string, DanmakuLayerHandle>>(new Map());
   const videoOrderListRef = useLatest(videoOrderList);
   const danmakuListRef = useLatest(danmakuList);
+  const videosRef = useLatest(videos);
+  const danmakuDisplayModeRef = useLatest(danmakuDisplayMode);
+  const layoutModeRef = useLatest(layoutMode);
   const refreshLocks = useRef<Set<string>>(new Set());
   const isAppReadyRef = useRef(false);
 
@@ -100,6 +109,10 @@ export function LiveRoomClient({
     if (savedOpacity) setDanmakuOpacity(Number(savedOpacity));
     const savedDensity = localStorage.getItem("danmakuDensity");
     if (savedDensity) setDanmakuDensity(Number(savedDensity));
+    const savedDisplayMode = localStorage.getItem("danmakuDisplayMode");
+    if (savedDisplayMode === "merged" || savedDisplayMode === "independent") {
+      setDanmakuDisplayMode(savedDisplayMode);
+    }
   }, []);
 
   useEffect(() => {
@@ -122,6 +135,48 @@ export function LiveRoomClient({
   useEffect(() => {
     initHuyaDanmaku();
   }, []);
+
+  const registerVideoDanmaku = useCallback(
+    (videoId: string, handle: DanmakuLayerHandle | null) => {
+      if (handle) {
+        videoDanmakuRefs.current.set(videoId, handle);
+      } else {
+        videoDanmakuRefs.current.delete(videoId);
+      }
+    },
+    []
+  );
+
+  const pushDanmaku = useCallback(
+    (roomKey: string, text: string, opts?: { color?: string }) => {
+      if (danmakuDisplayModeRef.current === "merged") {
+        danmakuRef.current?.push(text, opts);
+        return;
+      }
+
+      const candidates = videosRef.current.filter(
+        (v) =>
+          v.rid &&
+          roomKey &&
+          String(v.rid) === String(roomKey) &&
+          v.layout.visible
+      );
+
+      let target = candidates[0];
+      if (candidates.length > 1 && layoutModeRef.current === "overlap") {
+        target = candidates.reduce((best, v) =>
+          v.order > best.order ? v : best
+        );
+      }
+
+      if (target) {
+        videoDanmakuRefs.current.get(target.id)?.push(text, opts);
+      } else {
+        fallbackDanmakuRef.current?.push(text, opts);
+      }
+    },
+    [danmakuDisplayModeRef, layoutModeRef, videosRef]
+  );
 
   const syncVideoOrder = useCallback(() => {
     setVideos((prev) => {
@@ -267,17 +322,20 @@ export function LiveRoomClient({
     async (url: string) => {
       if (!url.trim()) return;
       setIsAddingDanmaku(true);
-      let rid = getLastField(url);
-      if (!isRid(rid)) {
-        const queryObj = parseUrlParams(url);
-        if (queryObj.rid) rid = queryObj.rid;
-      }
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       let ws: IDanmaku["ws"] = null;
+      let roomKey = "";
 
       try {
+        roomKey = await resolveRoomKey(url);
+        let rid = getLastField(url);
+        if (!isRid(rid)) {
+          const queryObj = parseUrlParams(url);
+          if (queryObj.rid) rid = queryObj.rid;
+        }
+
         if (url.includes("douyu.com")) {
-          const realRid = await apiGetDouyuRealRid(rid);
+          const realRid = roomKey || String(await apiGetDouyuRealRid(rid));
           ws = new DouyuDanmu(
             realRid,
             (msg: string) => {
@@ -288,7 +346,7 @@ export function LiveRoomClient({
                   col?: string | number;
                 };
                 if (data.txt) {
-                  danmakuRef.current?.push(data.txt, {
+                  pushDanmaku(realRid, data.txt, {
                     color: getDouyuDanmakuColor(data.col),
                   });
                 }
@@ -297,19 +355,19 @@ export function LiveRoomClient({
             () => ws?.close?.()
           );
         } else if (url.includes("bilibili.com")) {
-          const realRid = await apiGetBilibiliRealRid(rid);
+          const realRid = roomKey || String(await apiGetBilibiliRealRid(rid));
           ws = new LiveWS(Number(realRid));
           (ws as LiveWS).on("DANMU_MSG", (data: { info: [unknown[], string, unknown[]] }) => {
             const info = data.info;
             const colorNum = Number((info[0] as number[])[3]);
-            danmakuRef.current?.push(String(info[1]), {
+            pushDanmaku(realRid, String(info[1]), {
               color: `#${colorNum.toString(16)}`,
             });
           });
         } else if (url.includes("huya.com")) {
           const { channelId, subChannelId } = await apiGetHuyaChannelInfo(rid);
           ws = window.HuYaListener(channelId, subChannelId, (msg) => {
-            danmakuRef.current?.push(msg.sContent, {
+            pushDanmaku(roomKey, msg.sContent, {
               color:
                 msg.tBulletFormat.iFontColor > 0
                   ? `#${msg.tBulletFormat.iFontColor.toString(16)}`
@@ -317,14 +375,17 @@ export function LiveRoomClient({
             });
           });
         }
-        setDanmakuList((prev) => [...prev, { id, url, ws }]);
+        setDanmakuList((prev) => [
+          ...prev,
+          { id, url, rid: String(roomKey), ws },
+        ]);
       } catch {
         showToast("弹幕连接失败");
       } finally {
         setIsAddingDanmaku(false);
       }
     },
-    [showToast]
+    [pushDanmaku, showToast]
   );
 
   const loadDanmakuList = useCallback(
@@ -449,6 +510,10 @@ export function LiveRoomClient({
     localStorage.setItem("danmakuDensity", String(danmakuDensity));
   }, [danmakuDensity]);
 
+  useEffect(() => {
+    localStorage.setItem("danmakuDisplayMode", danmakuDisplayMode);
+  }, [danmakuDisplayMode]);
+
   const handleLayoutChange = useCallback((id: string, layout: IVideo["layout"]) => {
     setVideos((prev) =>
       prev.map((v) => (v.id === id ? { ...v, layout } : v))
@@ -512,14 +577,23 @@ export function LiveRoomClient({
   const effectiveLayoutMode: LayoutMode =
     isMobile && layoutMode === "free" ? "equal" : layoutMode;
 
+  const danmakuLayerProps = {
+    opacity: danmakuOpacity,
+    density: danmakuDensity,
+    speed: danmakuSpeed,
+  };
+
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground">
-      <DanmakuLayer
-        ref={danmakuRef}
-        opacity={danmakuOpacity}
-        density={danmakuDensity}
-        speed={danmakuSpeed}
-      />
+      {danmakuDisplayMode === "merged" ? (
+        <DanmakuLayer ref={danmakuRef} {...danmakuLayerProps} />
+      ) : (
+        <DanmakuLayer
+          ref={fallbackDanmakuRef}
+          {...danmakuLayerProps}
+          className="pointer-events-none absolute inset-0 z-40"
+        />
+      )}
 
       <main className="absolute inset-0">
         {videos.length === 0 ? (
@@ -529,6 +603,11 @@ export function LiveRoomClient({
             videos={videos}
             layoutMode={effectiveLayoutMode}
             lineCount={lineCount}
+            danmakuDisplayMode={danmakuDisplayMode}
+            danmakuOpacity={danmakuOpacity}
+            danmakuDensity={danmakuDensity}
+            danmakuSpeed={danmakuSpeed}
+            onVideoDanmakuRef={registerVideoDanmaku}
             onLayoutChange={handleLayoutChange}
             onRefresh={refreshVideo}
             onToggleVisible={handleToggleVisible}
@@ -586,6 +665,8 @@ export function LiveRoomClient({
         onDanmakuDensityChange={setDanmakuDensity}
         danmakuSpeed={danmakuSpeed}
         onDanmakuSpeedChange={setDanmakuSpeed}
+        danmakuDisplayMode={danmakuDisplayMode}
+        onDanmakuDisplayModeChange={setDanmakuDisplayMode}
         streamType={streamType}
       />
 

@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import clsx from "clsx";
 import type {
+  DanmakuDisplayMode,
   IDanmaku,
   IQnType,
   IStreamType,
@@ -50,6 +51,8 @@ interface SettingsPanelProps {
   onDanmakuDensityChange: (v: number) => void;
   danmakuSpeed: number;
   onDanmakuSpeedChange: (v: number) => void;
+  danmakuDisplayMode: DanmakuDisplayMode;
+  onDanmakuDisplayModeChange: (mode: DanmakuDisplayMode) => void;
   streamType: IStreamType;
 }
 
@@ -86,6 +89,8 @@ export function SettingsPanel({
   onDanmakuDensityChange,
   danmakuSpeed,
   onDanmakuSpeedChange,
+  danmakuDisplayMode,
+  onDanmakuDisplayModeChange,
   streamType,
 }: SettingsPanelProps) {
   const [tab, setTab] = useState<Tab>("video");
@@ -279,6 +284,21 @@ export function SettingsPanel({
 
           {tab === "danmaku" && (
             <div className="space-y-4">
+              <Field
+                label="显示模式"
+                hint="独立模式按房间号将弹幕飘在对应直播画面内；找不到对应画面时飘在最外层"
+              >
+                <RadioGroup
+                  value={danmakuDisplayMode}
+                  options={[
+                    { value: "merged", label: "重合" },
+                    { value: "independent", label: "独立" },
+                  ]}
+                  onChange={(v) =>
+                    onDanmakuDisplayModeChange(v as DanmakuDisplayMode)
+                  }
+                />
+              </Field>
               <Field label={`不透明度 ${danmakuOpacity}%`}>
                 <input
                   type="range"

@@ -23,12 +23,18 @@
 
 @layer components {
   .danmaku-item {
-    z-index: 40;
+    z-index: 1;
     user-select: none;
   }
 
-  #danmaku {
-    position: absolute !important;
+  .react-player {
+    position: relative !important;
+    z-index: 0 !important;
+  }
+
+  .react-player video {
+    position: relative;
+    z-index: 0;
   }
 }
 

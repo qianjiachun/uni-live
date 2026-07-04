@@ -2,18 +2,27 @@
 
 import { useCallback, useRef, useState } from "react";
 import clsx from "clsx";
-import type { IVideo, LayoutMode } from "@/types";
+import type { DanmakuDisplayMode, IVideo, LayoutMode } from "@/types";
 import {
   applyDrag,
   applyResize,
   type ResizeHandle,
 } from "@/features/free-layout/layout-utils";
+import {
+  DanmakuLayer,
+  type DanmakuLayerHandle,
+} from "@/features/danmaku/DanmakuLayer";
 import { VideoTile } from "@/features/free-layout/VideoTile";
 
 interface FreeLayoutCanvasProps {
   videos: IVideo[];
   layoutMode: LayoutMode;
   lineCount: number;
+  danmakuDisplayMode?: DanmakuDisplayMode;
+  danmakuOpacity?: number;
+  danmakuDensity?: number;
+  danmakuSpeed?: number;
+  onVideoDanmakuRef?: (videoId: string, handle: DanmakuLayerHandle | null) => void;
   onLayoutChange: (id: string, layout: IVideo["layout"]) => void;
   onRefresh: (id: string) => void;
   onToggleVisible: (id: string) => void;
@@ -26,6 +35,11 @@ export function FreeLayoutCanvas({
   videos,
   layoutMode,
   lineCount,
+  danmakuDisplayMode = "merged",
+  danmakuOpacity = 90,
+  danmakuDensity = 20,
+  danmakuSpeed = 120,
+  onVideoDanmakuRef,
   onLayoutChange,
   onRefresh,
   onToggleVisible,
@@ -107,7 +121,7 @@ export function FreeLayoutCanvas({
     setActiveId(null);
   }, []);
 
-  const getTileStyle = (video: IVideo): React.CSSProperties => {
+  const getSlotStyle = (video: IVideo): React.CSSProperties => {
     if (layoutMode === "overlap") {
       const isTop = video.id === overlapVideoId;
       return {
@@ -138,6 +152,8 @@ export function FreeLayoutCanvas({
     };
   };
 
+  const danmakuIndependent = danmakuDisplayMode === "independent";
+
   return (
     <div
       ref={containerRef}
@@ -149,23 +165,50 @@ export function FreeLayoutCanvas({
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
-      {videos.map((video) => (
-        <VideoTile
-          key={video.id}
-          video={video}
-          style={getTileStyle(video)}
-          isActive={activeId === video.id}
-          layoutMode={layoutMode}
-          onPointerDownDrag={(e) => handlePointerDown(e, video.id, "drag")}
-          onPointerDownResize={(e, handle) =>
-            handlePointerDown(e, video.id, "resize", handle)
-          }
-          onRefresh={() => onRefresh(video.id)}
-          onToggleVisible={() => onToggleVisible(video.id)}
-          onRemove={() => onRemove(video.id)}
-          onCopyStream={() => onCopyStream(video.id)}
-        />
-      ))}
+      {videos.map((video) => {
+        if (!video.layout.visible && layoutMode !== "overlap") {
+          return null;
+        }
+
+        return (
+          <div
+            key={video.id}
+            style={getSlotStyle(video)}
+            className={clsx(
+              "relative",
+              layoutMode === "overlap" &&
+                !video.layout.visible &&
+                "hidden"
+            )}
+          >
+            <VideoTile
+              video={video}
+              isActive={activeId === video.id}
+              layoutMode={layoutMode}
+              onPointerDownDrag={(e) => handlePointerDown(e, video.id, "drag")}
+              onPointerDownResize={(e, handle) =>
+                handlePointerDown(e, video.id, "resize", handle)
+              }
+              onRefresh={() => onRefresh(video.id)}
+              onToggleVisible={() => onToggleVisible(video.id)}
+              onRemove={() => onRemove(video.id)}
+              onCopyStream={() => onCopyStream(video.id)}
+            />
+
+            {danmakuIndependent ? (
+              <div className="pointer-events-none absolute inset-0 z-[50] overflow-hidden rounded-lg">
+                <DanmakuLayer
+                  ref={(handle) => onVideoDanmakuRef?.(video.id, handle)}
+                  opacity={danmakuOpacity}
+                  density={danmakuDensity}
+                  speed={danmakuSpeed}
+                  className="pointer-events-none absolute inset-0"
+                />
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }

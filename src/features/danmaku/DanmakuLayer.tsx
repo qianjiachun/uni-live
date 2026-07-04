@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from "react";
 import {
   DanmakuEngine,
   type DanmakuEngineOptions,
@@ -36,14 +36,30 @@ interface DanmakuLayerProps {
   opacity: number;
   density: number;
   speed: number;
+  className?: string;
 }
 
 export const DanmakuLayer = forwardRef<DanmakuLayerHandle, DanmakuLayerProps>(
-  function DanmakuLayer({ opacity, density, speed }, ref) {
+  function DanmakuLayer({ opacity, density, speed, className }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const engineRef = useRef<DanmakuEngine | null>(null);
+    const pendingRef = useRef<{ text: string; opts?: DanmakuPushOptions }[]>(
+      []
+    );
 
-    useEffect(() => {
+    const handleRef = useRef<DanmakuLayerHandle>({
+      push(text: string, opts?: DanmakuPushOptions) {
+        if (engineRef.current) {
+          engineRef.current.push(text, opts);
+        } else {
+          pendingRef.current.push({ text, opts });
+        }
+      },
+    });
+
+    useImperativeHandle(ref, () => handleRef.current, []);
+
+    useLayoutEffect(() => {
       const container = containerRef.current;
       if (!container) return;
 
@@ -54,6 +70,11 @@ export const DanmakuLayer = forwardRef<DanmakuLayerHandle, DanmakuLayerProps>(
       };
       engineRef.current = new DanmakuEngine(container, options);
 
+      for (const item of pendingRef.current) {
+        engineRef.current.push(item.text, item.opts);
+      }
+      pendingRef.current = [];
+
       return () => {
         engineRef.current?.destroy();
         engineRef.current = null;
@@ -62,29 +83,25 @@ export const DanmakuLayer = forwardRef<DanmakuLayerHandle, DanmakuLayerProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       engineRef.current?.setOpacity(opacity / 100);
     }, [opacity]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       engineRef.current?.setDensity(density);
     }, [density]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       engineRef.current?.setSpeed(speed);
     }, [speed]);
-
-    useImperativeHandle(ref, () => ({
-      push(text: string, opts?: DanmakuPushOptions) {
-        engineRef.current?.push(text, opts);
-      },
-    }));
 
     return (
       <div
         ref={containerRef}
-        id="danmaku"
-        className="pointer-events-none absolute inset-0 z-40"
+        className={
+          className ??
+          "pointer-events-none absolute inset-0 z-40"
+        }
         aria-hidden
       />
     );

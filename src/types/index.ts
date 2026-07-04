@@ -1,6 +1,8 @@
 export type IQnType = "原画" | "蓝光" | "超清" | "高清" | "流畅";
 export type IStreamType = "hls" | "flv";
 export type LayoutMode = "overlap" | "equal" | "free";
+/** 弹幕显示：重合=全局一层；独立=按房间号飘在对应直播画面内 */
+export type DanmakuDisplayMode = "merged" | "independent";
 export type Platform = "douyu" | "bilibili" | "huya" | "direct" | "unknown";
 export type VideoStatus = "idle" | "loading" | "playing" | "error";
 
@@ -39,6 +41,8 @@ export interface IVideoOrder {
 export interface IDanmaku {
   id: string;
   url: string;
+  /** 归一化房间号，用于独立模式匹配直播画面 */
+  rid: string;
   ws: { close?: () => void } | null;
 }
 
