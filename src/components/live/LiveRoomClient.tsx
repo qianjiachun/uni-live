@@ -50,7 +50,7 @@ import {
 import useLatest from "@/hooks/useLatest";
 import { initHuyaDanmaku } from "@/lib/danmaku/huya";
 import { resolveRoomKey } from "@/lib/room-key";
-import { ControlDock } from "@/components/live/ControlDock";
+import { ControlDock, type DockDisplayState } from "@/components/live/ControlDock";
 import { SettingsPanel } from "@/components/live/SettingsPanel";
 
 interface LiveRoomClientProps {
@@ -85,7 +85,9 @@ export function LiveRoomClient({
   const [isAddingDanmaku, setIsAddingDanmaku] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [isDockVisible, setIsDockVisible] = useState(false);
+  const [dockDisplayState, setDockDisplayState] =
+    useState<DockDisplayState>("collapsed");
+  const [isDockClosed, setIsDockClosed] = useState(false);
 
   const danmakuRef = useRef<DanmakuLayerHandle>(null);
   const fallbackDanmakuRef = useRef<DanmakuLayerHandle>(null);
@@ -101,7 +103,7 @@ export function LiveRoomClient({
   useEffect(() => {
     const saved = localStorage.getItem("dockVisible");
     if (saved !== null) {
-      setIsDockVisible(saved === "true");
+      setDockDisplayState(saved === "true" ? "expanded" : "collapsed");
     }
     const savedSpeed = localStorage.getItem("danmakuSpeed");
     if (savedSpeed) setDanmakuSpeed(Number(savedSpeed));
@@ -124,8 +126,13 @@ export function LiveRoomClient({
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("dockVisible", String(isDockVisible));
-  }, [isDockVisible]);
+    if (!isDockClosed) {
+      localStorage.setItem(
+        "dockVisible",
+        String(dockDisplayState === "expanded")
+      );
+    }
+  }, [dockDisplayState, isDockClosed]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -618,15 +625,19 @@ export function LiveRoomClient({
         )}
       </main>
 
-      <ControlDock
-        visible={isDockVisible}
-        onToggleVisible={() => setIsDockVisible((v) => !v)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onShare={handleShare}
-        layoutMode={layoutMode}
-        videoCount={videos.length}
-        danmakuCount={danmakuList.length}
-      />
+      {!isDockClosed ? (
+        <ControlDock
+          displayState={dockDisplayState}
+          onExpand={() => setDockDisplayState("expanded")}
+          onCollapse={() => setDockDisplayState("collapsed")}
+          onClose={() => setIsDockClosed(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onShare={handleShare}
+          layoutMode={layoutMode}
+          videoCount={videos.length}
+          danmakuCount={danmakuList.length}
+        />
+      ) : null}
 
       <SettingsPanel
         open={isSettingsOpen}
@@ -673,7 +684,7 @@ export function LiveRoomClient({
       {toast ? (
         <div
           role="status"
-          className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-surface-elevated px-4 py-2 text-sm shadow-lg md:bottom-8"
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-surface-elevated px-4 py-2 text-sm shadow-lg"
         >
           {toast}
         </div>
