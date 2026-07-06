@@ -29,6 +29,7 @@ const modeLabels: Record<LayoutMode, string> = {
   overlap: "重叠",
   equal: "均分",
   free: "自由布局",
+  grid: "网格",
 };
 
 const dockShellClass = clsx(
@@ -55,7 +56,7 @@ export function ControlDock({
         aria-label="直播控制"
         className={clsx(dockShellClass, "w-fit px-1 py-1")}
       >
-        <div className="group relative w-fit">
+        <div className="relative w-fit">
           <DockButton label="展开工具栏" onClick={onExpand}>
             <DotsThreeOutline size={16} weight="fill" />
           </DockButton>
@@ -71,11 +72,9 @@ export function ControlDock({
             className={clsx(
               "absolute -right-1 -top-1 z-10 flex h-4 w-4 items-center justify-center",
               "rounded-full border border-border/80 bg-surface-elevated text-muted shadow-md",
-              "transition-all duration-150",
-              "pointer-coarse:opacity-100",
-              "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+              "transition-colors duration-150",
               "hover:border-red-400/60 hover:bg-red-500/20 hover:text-red-300",
-              "focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
             )}
           >
             <X size={10} weight="bold" />

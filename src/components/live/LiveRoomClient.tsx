@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { deserialize, DouyuDanmu } from "douyu-danmu-ws";
 import { LiveWS } from "bilibili-live-ws/browser";
 import { Plus } from "@phosphor-icons/react";
 import type {
   DanmakuDisplayMode,
+  GridLayoutState,
   IDanmaku,
   IQnType,
   IStreamType,
@@ -25,8 +26,17 @@ import {
   createDefaultLayout,
   migrateShowType,
   parseShareDanmakuList,
+  parseShareGridLayout,
   parseShareVideoList,
 } from "@/features/free-layout/layout-utils";
+import { GridLayoutCanvas } from "@/features/grid-layout/GridLayoutCanvas";
+import {
+  assignVideoToFirstEmpty,
+  createInitialGrid,
+  isSameGridState,
+  reconcileGridWithVideos,
+  removeVideoFromGrid,
+} from "@/features/grid-layout/grid-utils";
 import {
   DanmakuLayer,
   getDouyuDanmakuColor,
@@ -51,13 +61,14 @@ import useLatest from "@/hooks/useLatest";
 import { initHuyaDanmaku } from "@/lib/danmaku/huya";
 import { resolveRoomKey } from "@/lib/room-key";
 import { ControlDock, type DockDisplayState } from "@/components/live/ControlDock";
-import { SettingsPanel } from "@/components/live/SettingsPanel";
+import { SettingsPanel, type SettingsFocus } from "@/components/live/SettingsPanel";
 
 interface LiveRoomClientProps {
   shareVideo?: string | null;
   shareDanmaku?: string | null;
   shareLayoutMode?: string | null;
   shareLineCount?: string | null;
+  shareGrid?: string | null;
   legacyShowType?: string | null;
 }
 
@@ -66,6 +77,7 @@ export function LiveRoomClient({
   shareDanmaku,
   shareLayoutMode,
   shareLineCount,
+  shareGrid,
   legacyShowType,
 }: LiveRoomClientProps) {
   const [streamType] = useState<IStreamType>(() => detectStreamType());
@@ -79,8 +91,12 @@ export function LiveRoomClient({
   const [danmakuDensity, setDanmakuDensity] = useState(20);
   const [danmakuSpeed, setDanmakuSpeed] = useState(120);
   const [danmakuDisplayMode, setDanmakuDisplayMode] =
-    useState<DanmakuDisplayMode>("merged");
+    useState<DanmakuDisplayMode>("independent");
+  const [gridLayout, setGridLayout] = useState<GridLayoutState>(() =>
+    createInitialGrid(2, 2)
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsFocus, setSettingsFocus] = useState<SettingsFocus | undefined>();
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [isAddingDanmaku, setIsAddingDanmaku] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -99,6 +115,16 @@ export function LiveRoomClient({
   const layoutModeRef = useLatest(layoutMode);
   const refreshLocks = useRef<Set<string>>(new Set());
   const isAppReadyRef = useRef(false);
+
+  const openSettings = useCallback((focus?: SettingsFocus) => {
+    setSettingsFocus(focus);
+    setIsSettingsOpen(true);
+  }, []);
+
+  const closeSettings = useCallback(() => {
+    setIsSettingsOpen(false);
+    setSettingsFocus(undefined);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("dockVisible");
@@ -202,10 +228,15 @@ export function LiveRoomClient({
   }, [syncVideoOrder]);
 
   const addVideo = useCallback(
-    async (url: string, quality: IQnType = qnName, savedLayout?: VideoLayout) => {
+    async (
+      url: string,
+      quality: IQnType = qnName,
+      savedLayout?: VideoLayout,
+      savedId?: string
+    ) => {
       if (!url.trim()) return;
       setIsAddingVideo(true);
-      const id = String(Date.now() + Math.random());
+      const id = savedId ?? String(Date.now() + Math.random());
       const index = videoOrderListRef.current.length;
 
       try {
@@ -236,6 +267,10 @@ export function LiveRoomClient({
         setVideos((prev) => [...prev, video]);
         setVideoOrderList((prev) => [...prev, { id, url, qnName: quality, layout }]);
 
+        if (layoutModeRef.current === "grid") {
+          setGridLayout((g) => assignVideoToFirstEmpty(g, id));
+        }
+
         if (errorMessage) showToast(errorMessage);
       } catch {
         showToast("网络错误，获取直播流失败");
@@ -247,7 +282,7 @@ export function LiveRoomClient({
   );
 
   const refreshVideo = useCallback(
-    async (id: string) => {
+    async (id: string, options?: { force?: boolean }) => {
       if (refreshLocks.current.has(id)) return;
       refreshLocks.current.add(id);
 
@@ -282,10 +317,11 @@ export function LiveRoomClient({
                 errorMessage,
               };
             }
+            const streamUnchanged = v.stream === stream;
             return {
               ...v,
               stream,
-              playbackKey: v.playbackKey + 1,
+              playbackKey: streamUnchanged ? v.playbackKey : v.playbackKey + 1,
               isRefreshing: false,
               status: "playing",
               errorMessage: undefined,
@@ -294,7 +330,7 @@ export function LiveRoomClient({
         );
 
         if (errorMessage) showToast(errorMessage);
-        else showToast("直播流已刷新");
+        else if (options?.force) showToast("直播流已刷新");
       } catch {
         setVideos((prev) =>
           prev.map((v) =>
@@ -319,7 +355,7 @@ export function LiveRoomClient({
   const loadVideoList = useCallback(
     async (list: IVideoOrder[]) => {
       for (const item of list) {
-        await addVideo(item.url, item.qnName, item.layout);
+        await addVideo(item.url, item.qnName, item.layout, item.id);
       }
     },
     [addVideo]
@@ -420,6 +456,20 @@ export function LiveRoomClient({
         shareLineCount ?? localStorage.getItem("lineCount") ?? "2";
       setLineCount(Number(savedLineCount));
 
+      const sharedGrid = parseShareGridLayout(shareGrid ?? null);
+      if (sharedGrid) {
+        setGridLayout(sharedGrid);
+      } else {
+        const localGrid = localStorage.getItem("gridLayout");
+        if (localGrid) {
+          try {
+            setGridLayout(JSON.parse(localGrid) as GridLayoutState);
+          } catch {
+            // ignore
+          }
+        }
+      }
+
       if (shareVideo) {
         await loadVideoList(parseShareVideoList(shareVideo));
       } else {
@@ -467,6 +517,7 @@ export function LiveRoomClient({
     loadDanmakuList,
     loadVideoList,
     shareDanmaku,
+    shareGrid,
     shareLayoutMode,
     shareLineCount,
     shareVideo,
@@ -506,6 +557,11 @@ export function LiveRoomClient({
   }, [lineCount]);
 
   useEffect(() => {
+    if (!isAppReadyRef.current) return;
+    localStorage.setItem("gridLayout", JSON.stringify(gridLayout));
+  }, [gridLayout]);
+
+  useEffect(() => {
     localStorage.setItem("danmakuSpeed", String(danmakuSpeed));
   }, [danmakuSpeed]);
 
@@ -520,6 +576,20 @@ export function LiveRoomClient({
   useEffect(() => {
     localStorage.setItem("danmakuDisplayMode", danmakuDisplayMode);
   }, [danmakuDisplayMode]);
+
+  const videoIdsKey = useMemo(
+    () => videos.map((v) => v.id).join("|"),
+    [videos]
+  );
+
+  useEffect(() => {
+    if (layoutMode !== "grid") return;
+    const videoIds = videoIdsKey ? videoIdsKey.split("|") : [];
+    setGridLayout((g) => {
+      const next = reconcileGridWithVideos(g, videoIds);
+      return isSameGridState(g, next) ? g : next;
+    });
+  }, [layoutMode, videoIdsKey]);
 
   const handleLayoutChange = useCallback((id: string, layout: IVideo["layout"]) => {
     setVideos((prev) =>
@@ -557,6 +627,7 @@ export function LiveRoomClient({
   const handleRemoveVideo = useCallback((id: string) => {
     setVideos((prev) => prev.filter((v) => v.id !== id));
     setVideoOrderList((prev) => prev.filter((v) => v.id !== id));
+    setGridLayout((g) => removeVideoFromGrid(g, id));
   }, []);
 
   const handleCopyStream = useCallback(
@@ -575,11 +646,12 @@ export function LiveRoomClient({
       videoOrderList,
       danmakuList.map(({ url }) => ({ url })),
       layoutMode,
-      lineCount
+      lineCount,
+      layoutMode === "grid" ? gridLayout : undefined
     );
     const ok = await copyText(url);
     showToast(ok ? "分享链接已复制" : "复制失败");
-  }, [danmakuList, layoutMode, lineCount, showToast, videoOrderList]);
+  }, [danmakuList, gridLayout, layoutMode, lineCount, showToast, videoOrderList]);
 
   const effectiveLayoutMode: LayoutMode =
     isMobile && layoutMode === "free" ? "equal" : layoutMode;
@@ -603,8 +675,30 @@ export function LiveRoomClient({
       )}
 
       <main className="absolute inset-0">
-        {videos.length === 0 ? (
-          <EmptyState onOpenSettings={() => setIsSettingsOpen(true)} />
+        {videos.length === 0 && layoutMode !== "grid" ? (
+          <EmptyState
+            onOpenSettings={() =>
+              openSettings({ tab: "video", subTab: "add" })
+            }
+          />
+        ) : layoutMode === "grid" ? (
+          <GridLayoutCanvas
+            videos={videos}
+            grid={gridLayout}
+            onGridChange={setGridLayout}
+            danmakuDisplayMode={danmakuDisplayMode}
+            danmakuOpacity={danmakuOpacity}
+            danmakuDensity={danmakuDensity}
+            danmakuSpeed={danmakuSpeed}
+            onVideoDanmakuRef={registerVideoDanmaku}
+            onRefresh={refreshVideo}
+            onToggleVisible={handleToggleVisible}
+            onRemove={handleRemoveVideo}
+            onCopyStream={handleCopyStream}
+            onOpenSettings={() =>
+              openSettings({ tab: "video", subTab: "add" })
+            }
+          />
         ) : (
           <FreeLayoutCanvas
             videos={videos}
@@ -631,7 +725,9 @@ export function LiveRoomClient({
           onExpand={() => setDockDisplayState("expanded")}
           onCollapse={() => setDockDisplayState("collapsed")}
           onClose={() => setIsDockClosed(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSettings={() =>
+            openSettings({ tab: "video", subTab: "add" })
+          }
           onShare={handleShare}
           layoutMode={layoutMode}
           videoCount={videos.length}
@@ -641,7 +737,8 @@ export function LiveRoomClient({
 
       <SettingsPanel
         open={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+        onClose={closeSettings}
+        focus={settingsFocus}
         layoutMode={layoutMode}
         onLayoutModeChange={setLayoutMode}
         lineCount={lineCount}
@@ -679,6 +776,8 @@ export function LiveRoomClient({
         danmakuDisplayMode={danmakuDisplayMode}
         onDanmakuDisplayModeChange={setDanmakuDisplayMode}
         streamType={streamType}
+        gridLayout={gridLayout}
+        onGridChange={setGridLayout}
       />
 
       {toast ? (

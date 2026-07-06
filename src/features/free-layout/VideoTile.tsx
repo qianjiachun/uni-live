@@ -17,6 +17,7 @@ interface VideoTileProps {
   video: IVideo;
   isActive: boolean;
   layoutMode: LayoutMode;
+  showToolbar?: boolean;
   onPointerDownDrag: (e: React.PointerEvent) => void;
   onPointerDownResize: (e: React.PointerEvent, handle: ResizeHandle) => void;
   onRefresh: () => void;
@@ -40,6 +41,7 @@ export function VideoTile({
   video,
   isActive,
   layoutMode,
+  showToolbar = true,
   onPointerDownDrag,
   onPointerDownResize,
   onRefresh,
@@ -54,6 +56,7 @@ export function VideoTile({
         isActive && "ring-2 ring-accent/70"
       )}
     >
+      {showToolbar ? (
       <div
         className={clsx(
           "absolute inset-x-0 top-0 z-20 flex items-center gap-1 bg-gradient-to-b from-black/80 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100",
@@ -94,13 +97,13 @@ export function VideoTile({
           <Trash size={18} />
         </IconButton>
       </div>
+      ) : null}
 
-      <div className="relative h-full w-full">
+      <div className="relative h-full w-full min-h-0">
         {video.stream ? (
           <PlayerAdapter
             src={video.stream}
             playbackKey={video.playbackKey}
-            onError={onRefresh}
           />
         ) : null}
 

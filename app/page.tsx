@@ -6,6 +6,7 @@ interface PageProps {
     danmaku?: string;
     layoutMode?: string;
     lineCount?: string;
+    grid?: string;
     showType?: string;
   }>;
 }
@@ -19,6 +20,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       shareDanmaku={params.danmaku ?? null}
       shareLayoutMode={params.layoutMode ?? null}
       shareLineCount={params.lineCount ?? null}
+      shareGrid={params.grid ?? null}
       legacyShowType={params.showType ?? null}
     />
   );

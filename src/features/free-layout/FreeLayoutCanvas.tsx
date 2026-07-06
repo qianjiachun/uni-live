@@ -35,7 +35,7 @@ export function FreeLayoutCanvas({
   videos,
   layoutMode,
   lineCount,
-  danmakuDisplayMode = "merged",
+  danmakuDisplayMode = "independent",
   danmakuOpacity = 90,
   danmakuDensity = 20,
   danmakuSpeed = 120,

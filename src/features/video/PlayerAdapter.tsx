@@ -19,21 +19,26 @@ export function PlayerAdapter({ src, playbackKey, onError }: PlayerAdapterProps)
   if (!src) return null;
 
   return (
-    <ReactPlayer
-      key={playbackKey}
-      url={src}
-      playing
-      muted
-      controls
-      width="100%"
-      height="100%"
-      onError={handleError}
-      config={{
-        file: {
-          forceHLS: src.includes(".m3u8"),
-          forceFLV: src.includes(".flv") || (!src.includes(".m3u8") && !src.includes(".mp4")),
-        },
-      }}
-    />
+    <div className="absolute inset-0">
+      <ReactPlayer
+        key={playbackKey}
+        url={src}
+        playing
+        muted
+        controls
+        width="100%"
+        height="100%"
+        style={{ position: "absolute", top: 0, left: 0 }}
+        onError={handleError}
+        config={{
+          file: {
+            forceHLS: src.includes(".m3u8"),
+            forceFLV:
+              src.includes(".flv") ||
+              (!src.includes(".m3u8") && !src.includes(".mp4")),
+          },
+        }}
+      />
+    </div>
   );
 }

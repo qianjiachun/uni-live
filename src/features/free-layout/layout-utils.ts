@@ -1,4 +1,4 @@
-import type { IVideoOrder, LayoutMode, VideoLayout } from "@/types";
+import type { GridLayoutState, IVideoOrder, LayoutMode, VideoLayout } from "@/types";
 
 const MIN_SIZE = 15;
 
@@ -31,7 +31,7 @@ export function clampLayout(layout: VideoLayout): VideoLayout {
 export function migrateShowType(showType: string | null): LayoutMode {
   if (showType === "overlap" || showType === "focus") return "overlap";
   if (showType === "line") return "equal";
-  if (showType === "grid") return "free";
+  if (showType === "grid") return "grid";
   if (showType === "equal" || showType === "free") {
     return showType;
   }
@@ -43,7 +43,8 @@ export function buildShareUrl(
   videoOrderList: IVideoOrder[],
   danmakuList: { url: string }[],
   layoutMode: LayoutMode,
-  lineCount: number
+  lineCount: number,
+  gridLayout?: GridLayoutState
 ): string {
   const params = new URLSearchParams();
   params.set(
@@ -56,7 +57,24 @@ export function buildShareUrl(
   );
   params.set("layoutMode", layoutMode);
   params.set("lineCount", String(lineCount));
+  if (gridLayout) {
+    params.set(
+      "grid",
+      btoa(encodeURIComponent(JSON.stringify(gridLayout)))
+    );
+  }
   return `${origin}?${params.toString()}`;
+}
+
+export function parseShareGridLayout(
+  encoded: string | null
+): GridLayoutState | null {
+  if (!encoded) return null;
+  try {
+    return JSON.parse(decodeURIComponent(atob(encoded))) as GridLayoutState;
+  } catch {
+    return null;
+  }
 }
 
 export function parseShareVideoList(encoded: string | null): IVideoOrder[] {
