@@ -108,13 +108,7 @@ export function GridLayoutCanvas({
     : [];
 
   const mergeHandles = selectedSlot
-    ? getMergeHandlesForSlot(
-        selectedSlot,
-        mergeableNeighbors,
-        grid.rows,
-        grid.cols,
-        grid.gap
-      )
+    ? getMergeHandlesForSlot(selectedSlot, mergeableNeighbors)
     : [];
 
   useEffect(() => {

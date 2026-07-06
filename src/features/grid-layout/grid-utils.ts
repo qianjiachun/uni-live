@@ -214,7 +214,7 @@ export function reconcileGridWithVideos(
   videoIds: string[]
 ): GridLayoutState {
   const valid = new Set(videoIds);
-  let slots = state.slots.map((s) => ({
+  const slots = state.slots.map((s) => ({
     ...s,
     videoId: s.videoId && valid.has(s.videoId) ? s.videoId : null,
   }));
@@ -327,10 +327,7 @@ export type MergeDirection = "top" | "right" | "bottom" | "left";
 /** 选中格子可合并的方向 */
 export function getMergeHandlesForSlot(
   slot: GridSlot,
-  neighbors: GridSlot[],
-  rows: number,
-  cols: number,
-  gap: number = GAP_PERCENT
+  neighbors: GridSlot[]
 ): { neighborId: string; direction: MergeDirection }[] {
   const ba = getBounds(slot);
   const handles: { neighborId: string; direction: MergeDirection }[] = [];
